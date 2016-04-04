@@ -10,6 +10,7 @@ BOARDNAME:=AppliedMicro APM821xx
 CPU_TYPE:=464fp
 FEATURES:=fpu dt gpio
 MAINTAINER:=Chris Blake <chrisrblake93@gmail.com>
+SUBTARGETS:=cisco
 
 KERNEL_PATCHVER:=4.4
 
