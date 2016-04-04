@@ -517,7 +517,7 @@ $(eval $(call KernelPackage,wdt-orion))
 define KernelPackage/booke-wdt
   SUBMENU:=$(OTHER_MENU)
   TITLE:=PowerPC Book-E Watchdog Timer
-  DEPENDS:=@(TARGET_mpc85xx||TARGET_ppc40x||TARGET_ppc44x)
+  DEPENDS:=@(TARGET_apm821xx||TARGET_mpc85xx||TARGET_ppc40x||TARGET_ppc44x)
   KCONFIG:=CONFIG_BOOKE_WDT
   FILES:=$(LINUX_DIR)/drivers/$(WATCHDOG_DIR)/booke_wdt.ko
   AUTOLOAD:=$(call AutoLoad,50,booke_wdt,1)
