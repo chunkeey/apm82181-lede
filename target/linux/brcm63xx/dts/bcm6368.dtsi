@@ -78,20 +78,24 @@
 
 		gpio1: gpio-controller@10000080 {
 			compatible = "brcm,bcm6345-gpio";
+			reg-names = "dat", "dirout";
 			reg = <0x10000080 4>, <0x10000088 4>;
 
 			gpio-controller;
 			#gpio-cells = <2>;
 
 			ngpios = <6>;
+			big-endian;
 		};
 
 		gpio0: gpio-controller@10000084 {
 			compatible = "brcm,bcm6345-gpio";
+			reg-names = "dat", "dirout";
 			reg = <0x10000084 4>, <0x1000008c 4>;
 
 			gpio-controller;
 			#gpio-cells = <2>;
+			big-endian;
 		};
 	};
 
