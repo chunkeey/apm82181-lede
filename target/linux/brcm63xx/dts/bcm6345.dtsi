@@ -69,12 +69,14 @@
 
 		gpio0: gpio-controller@fffe0404 {
 			compatible = "brcm,bcm6345-gpio";
+			reg-names = "dat", "dirout";
 			reg = <0xfffe0404 4>, <0xfffe0408 4>;
 
 			gpio-controller;
 			#gpio-cells = <2>;
 
 			ngpios = <16>;
+			big-endian;
 		};
 	};
 };
