@@ -1,45 +1,12 @@
 From a0dc613140bab907a3d5787a7ae7b0638bf674d0 Mon Sep 17 00:00:00 2001
 From: Christian Lamparter <chunkeey@gmail.com>
 Date: Thu, 23 Jun 2016 20:28:20 +0200
-Subject: [PATCH] usb: xhci: add firmware loader quirk for uPD720201 and
+Subject: [PATCH] usb: xhci: force MSI for uPD720201 and
  uPD720202
 
-This patch adds a firmware loader for the uPD720201K8-711-BAC-A
-and uPD720202K8-711-BAA-A variant. Both of these chips are listed
-in Renesas' R19UH0078EJ0500 Rev.5.00 "User's Manual: Hardware" as
-devices which need a firmware in order to work as they do not have
-support to load the firmware from an external ROM.
+The APM82181 does not support MSI-X. When probed, it will
+produce a noisy warning.
 
-Currently, the xhci-pci driver is unable to initialize the hcd in
-this case. Instead it will wait for 30 seconds and cause a timeout
-in xhci_handshake() and fail.
-
-[    5.116990] xhci_hcd 0000:45:00.0: new USB bus registered ...
-[   32.335215] xhci_hcd 0000:45:00.0: can't setup: -110
-[   32.340179] xhci_hcd 0000:45:00.0: USB bus 2 deregistered
-[   32.345587] xhci_hcd 0000:45:00.0: init 0000:45:00.0 fail, -110
-[   32.351496] xhci_hcd: probe of 0000:45:00.0 failed with error -110
-
-With the firmware loader quirk and the correct firmware in place,
-the device will now initialize successfully:
-
-[    5.384776] xhci_hcd 0000:45:00.0: xHCI Host Controller
-[    5.390028] xhci_hcd 0000:45:00.0: new USB bus registered ...
-[    5.403017] xhci_hcd 0000:45:00.0: hcc params 0x014051cf ...
-[    5.412217] hub 2-0:1.0: USB hub found
-[    5.416123] hub 2-0:1.0: 2 ports detected
-[    5.420494] xhci_hcd 0000:45:00.0: xHCI Host Controller
-[    5.425730] xhci_hcd 0000:45:00.0: new USB bus registered...
-[    5.441771] hub 3-0:1.0: USB hub found
-[    5.445692] hub 3-0:1.0: 2 ports detected
-...
-
-The firmware image can be extracted from the Windows driver.
-A viable source is the "PP2U-E" (USB3.0 Host to PCIe Adapter)'s
-"Firmware download (ver 2.0.1.3) Jun 15, 2012" file. It contains
-the K2013080.mem file which needs to be placed in /lib/firmware.
-
-Signed-off-by: Christian Lamparter <chunkeey@gmail.com>
 ---
  drivers/usb/host/pci-quirks.c | 362 ++++++++++++++++++++++++++++++++++++++++++
  1 file changed, 362 insertions(+)

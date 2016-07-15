@@ -40,7 +40,7 @@ static int __init ppc44x_device_probe(void)
 
 	return 0;
 }
-machine_device_initcall(ppc44x_simple, ppc44x_device_probe);
+machine_device_initcall(wndr4700, ppc44x_device_probe);
 
 static char *board[] __initdata = {
 	"netgear,wndr4700",
@@ -63,7 +63,7 @@ static int __init ppc44x_probe(void)
 	return 0;
 }
 
-define_machine(ppc44x_simple) {
+define_machine(wndr4700) {
 	.name = "WNDR4700 Platform",
 	.probe = ppc44x_probe,
 	.progress = udbg_progress,

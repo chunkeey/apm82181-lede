@@ -1,7 +1,66 @@
-From e02f3cecdd79b315b3fd31490da0a731b92973ad Mon Sep 17 00:00:00 2001
-From: Christian Lamparter <chunkeey@googlemail.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Date: Sat, 21 May 2016 22:46:32 +0200
-Subject: [PATCH] ata: sata_dwc_460ex: upstream changes from -next-20160429
+Subject:  [PATCH v2 00/23] ata: sata_dwc_460ex: make it working again
+
+The last approach in the commit 8b3444852a2b ("sata_dwc_460ex: move to generic
+DMA driver") to switch to generic DMA engine API wasn't tested on bare metal.
+Besides that we expecting new board support coming with the same SATA IP but
+with different DMA.
+
+This series is targetting the following things:
+- a few bug fixes to the original driver
+- a part to fix the DMA engine usage and in particularly dw_dmac driver
+- move driver to use generic PHY and "dmas" property which leads to update in DTS
+
+The driver has been tested myself on Sam460ex and WD MyBookLive (apollo3g)
+boards. In any case I ask Christian, Måns, and Julian to independently test and
+provide Tested-by tag or an error report.
+
+Series depends on previously published but not yet fully applied series [1].
+
+The patches are also available via public branch [2].
+
+[1] http://www.spinics.net/lists/dmaengine/msg09250.html
+[2] https://bitbucket.org/andy-shev/linux/branch/topic%2Fdw%2Fsata
+
+Since v1:
+- simplify patch 8 (David Laight)
+- add Tested-by and Acked-by tags
+
+Andy Shevchenko (11):
+  ata: sata_dwc_460ex: set dma_boundary to 0x1fff
+  ata: sata_dwc_460ex: burst size must be in items not bytes
+  ata: sata_dwc_460ex: DMA is always a flow controller
+  ata: sata_dwc_460ex: select only core part of DMA driver
+  ata: sata_dwc_460ex: don't call ata_sff_qc_issue() on DMA commands
+  ata: sata_dwc_460ex: correct HOSTDEV{P}_FROM_*() macros
+  ata: sata_dwc_460ex: supply physical address of FIFO to DMA
+  ata: sata_dwc_460ex: switch to new dmaengine_terminate_* API
+  ata: sata_dwc_460ex: use devm_ioremap
+  ata: sata_dwc_460ex: make debug messages neat
+  powerpc/4xx: Device tree update for the 460ex DWC SATA
+
+Christian Lamparter (1):
+  ata: sata_dwc_460ex: fix crash on offline links without an attached
+    drive
+
+Mans Rullgard (11):
+  ata: sata_dwc_460ex: remove incorrect locking
+  ata: sata_dwc_460ex: skip dma setup for non-dma commands
+  ata: sata_dwc_460ex: use "dmas" DT property to find dma channel
+  ata: sata_dwc_460ex: add phy support
+  ata: sata_dwc_460ex: get rid of global data
+  ata: sata_dwc_460ex: remove empty libata callback
+  ata: sata_dwc_460ex: get rid of some pointless casts
+  ata: sata_dwc_460ex: get rid of incorrect cast
+  ata: sata_dwc_460ex: add __iomem to register base pointer
+  ata: sata_dwc_460ex: use readl/writel_relaxed()
+  ata: sata_dwc_460ex: tidy up sata_dwc_clear_dmacr()
+
+ arch/powerpc/boot/dts/canyonlands.dts |  15 +-
+ drivers/ata/Kconfig                   |  12 +-
+ drivers/ata/sata_dwc_460ex.c          | 552 +++++++++++++++++-----------------
+ 3 files changed, 305 insertions(+), 274 deletions(-)
 
 ---
  drivers/ata/sata_dwc_460ex.c | 552 ++++++++++++++++++++++---------------------

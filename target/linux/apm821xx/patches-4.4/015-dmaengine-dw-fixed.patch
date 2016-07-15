@@ -1,3 +1,70 @@
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v6 0/4] Fixes / cleanups in dw_dmac (affects on few subsystems)
+Date: Mon, 25 Apr 2016 15:35:05 +0300
+
+This patch series (v3: http://www.spinics.net/lists/kernel/msg2215303.html)
+contains a number of mostly minor fixes and cleanups for the DW DMA driver. A
+couple of them affect the DT binding so these may need to be updated to
+maintain compatibility (old format is still supported though). The rest should
+be relatively straight-forward.
+
+This version has been tested on the following bare metal platforms:
+- ATNGW100 (avr32 based platform) with dmatest
+- Sam460ex (powerpc 44x based platform) with SATA
+- Intel Braswell with UART
+- Intel Galileo (Intel Quark based platform) with UART
+
+(SATA driver and Intel Galileo UART support are based on this series and just
+ published recently for a review)
+
+Vinod, there are few patch sets developed on top of this one, so, the idea is
+to keep this in an immuutable branch / tag.
+
+Changes since v5:
+- fixed an issue found by kbuildbot
+
+Changes since v4:
+- send proper set of patches
+- add changelog
+
+Changes since v3:
+- add patch 1 to check value of dma-masters property
+- drop the upstreamed patches
+- update patch 2 to keep an array for data-width property as well
+
+Changes since v2:
+- add patch 1 to fix master selection which was broken for long time
+- remove "use field-by-field initialization" patch since like Mans metioned in
+  has mostly no value and even might increase error prone
+- rebase on top of recent linux-next
+- wide testing on several platforms
+
+Changes since v1:
+- zeroing struct dw_dma_slave before use
+- fall back to old data_width property if data-width is not found
+- append tags for few patches
+- correct title of cover letter
+- rebase on top of recent linux-next
+
+Andy Shevchenko (4):
+  dmaengine: dw: platform: check nr_masters to be non-zero
+  dmaengine: dw: revisit data_width property
+  dmaengine: dw: keep entire platform data in struct dw_dma
+  dmaengine: dw: pass platform data via struct dw_dma_chip
+
+ Documentation/devicetree/bindings/dma/snps-dma.txt |  6 +-
+ arch/arc/boot/dts/abilis_tb10x.dtsi                |  2 +-
+ arch/arm/boot/dts/spear13xx.dtsi                   |  4 +-
+ drivers/ata/sata_dwc_460ex.c                       |  2 +-
+ drivers/dma/dw/core.c                              | 75 ++++++++--------------
+ drivers/dma/dw/pci.c                               |  5 +-
+ drivers/dma/dw/platform.c                          | 32 +++++----
+ drivers/dma/dw/regs.h                              |  5 +-
+ include/linux/dma/dw.h                             |  5 +-
+ include/linux/platform_data/dma-dw.h               |  4 +-
+ sound/soc/intel/common/sst-firmware.c              |  2 +-
+ 11 files changed, 64 insertions(+), 78 deletions(-)
+
 --- a/drivers/dma/dw/core.c	2016-05-21 23:13:19.964478443 +0200
 +++ b/drivers/dma/dw/core.c	2016-05-21 22:47:08.665465180 +0200
 @@ -45,22 +45,19 @@

@@ -11,7 +11,7 @@ CPU_TYPE:=464fp
 FEATURES:=fpu dt gpio
 MAINTAINER:=Chris Blake <chrisrblake93@gmail.com>, \
 	    Christian Lamparter <chunkeey@gmail.com>
-SUBTARGETS:=cisco mbl netgear
+SUBTARGETS:=nand sata
 
 KERNEL_PATCHVER:=4.4
 
@@ -20,7 +20,7 @@ include $(INCLUDE_DIR)/target.mk
 KERNELNAME:=uImage
 
 DEFAULT_PACKAGES += \
-	kmod-leds-gpio kmod-booke-wdt kmod-i2c-core kmod-gpio-button-hotplug
+	kmod-leds-gpio kmod-i2c-core kmod-gpio-button-hotplug
 
 define Target/Description
 	Build images for AppliedMicro APM821xx based boards.
