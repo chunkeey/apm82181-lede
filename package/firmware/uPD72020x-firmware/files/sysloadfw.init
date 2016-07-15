@@ -1,0 +1,31 @@
+#!/bin/sh /etc/rc.common
+
+# This only works for firmwares that are not in a subdirectory.
+
+START=15
+
+FW_PATH=/lib/firmware/
+DEV_PATH=/sys/class/firmware/
+
+boot() {
+	for FIRMWARE in $(ls -1 "$DEV_PATH" 2>/dev/null); do
+		DEV="$DEV_PATH/$FIRMWARE"
+
+		[ -e "$DEV/loading" ] || continue
+
+		FW="$FW_PATH/$FIRMWARE"
+
+		[ -e "$FW" ] || {
+			FIRMWARE=$FIRMWARE /sbin/hotplug-call firmware
+
+			[ -e "$FW" ] || {
+				echo -1 > "$DEV/loading"
+				continue
+			}
+		}
+
+		echo 1 > "$DEV/loading"
+		cat "$FW" > "$DEV/data"
+		echo 0 > "$DEV/loading"
+	done
+}
