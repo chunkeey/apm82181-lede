@@ -6,7 +6,7 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 include $(INCLUDE_DIR)/host.mk
 
-DEVICE_VARS += DEVICE_DTS DEVICE_PROFILE IMAGE_SIZE
+DEVICE_VARS += DEVICE_DTS DEVICE_PROFILE IMAGE_SIZE DTB_SIZE
 
 define Device/Default
   KERNEL_DEPENDS = $$(wildcard ../dts/$$(DEVICE_DTS).dts)
