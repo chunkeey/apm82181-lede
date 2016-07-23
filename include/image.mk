@@ -327,7 +327,7 @@ define Device/Export
 endef
 
 ifdef IB
-  DEVICE_CHECK_PROFILE = $(filter $(1),$(PROFILE))
+  DEVICE_CHECK_PROFILE = $(filter $(1),DEVICE_$(PROFILE) $(PROFILE))
 else
   DEVICE_CHECK_PROFILE = $(CONFIG_TARGET_$(if $(CONFIG_TARGET_MULTI_PROFILE),DEVICE_)$(call target_conf,$(BOARD)$(if $(SUBTARGET),_$(SUBTARGET)))_$(1))
 endif
@@ -485,7 +485,7 @@ define BuildImage
   $(foreach device,$(TARGET_DEVICES),$(call Device,$(device)))
   $(foreach device,$(LEGACY_DEVICES),$(call LegacyDevice,$(device)))
 
-  install-images: kernel_prepare $(foreach fs,$(filter-out ubifs,$(TARGET_FILESYSTEMS) $(fs-subtypes-y)),$(KDIR)/root.$(fs))
+  install-images: kernel_prepare $(foreach fs,$(filter-out $(if $(UBIFS_OPTS),,ubifs),$(TARGET_FILESYSTEMS) $(fs-subtypes-y)),$(KDIR)/root.$(fs))
 	$(foreach fs,$(TARGET_FILESYSTEMS),
 		$(call Image/Build,$(fs))
 	)
