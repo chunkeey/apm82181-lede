@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uPD72020x-firmware
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 RENESAS_FW:=USB3-201-202-FW-20120615
 RENESAS_FW_FILE:=$(RENESAS_FW).zip
@@ -40,6 +40,8 @@ endef
 define Package/uPD72020x-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware/
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/$(RENESAS_FW)/K2013080.mem $(1)/lib/firmware/
+	$(INSTALL_DIR) $(1)/etc/init.d/
+	$(INSTALL_BIN) ./files/sysloadfw.init $(1)/etc/init.d/sysloadfw
 endef
 
 $(eval $(call BuildPackage,uPD72020x-firmware))
