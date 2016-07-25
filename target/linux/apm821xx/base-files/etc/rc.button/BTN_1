@@ -17,4 +17,3 @@ if [ $BOARD == "wndr4700" ]; then
 fi
 
 return 0
-
