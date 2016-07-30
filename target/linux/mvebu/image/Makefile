@@ -15,6 +15,7 @@ KERNEL_LOADADDR := 0x00008000
 DEVICE_VARS += KERNEL_SIZE
 
 define Device/Default
+  PROFILES := Default
   DEVICE_DTS := $(1)
   BOARD_NAME = $$(DEVICE_DTS)
   KERNEL_NAME := zImage
@@ -23,7 +24,7 @@ endef
 
 define Device/UBI
   IMAGES := sysupgrade.bin
-  IMAGE/sysupgrade.bin := sysupgrade-nand
+  IMAGE/sysupgrade.bin := sysupgrade-tar
 endef
 
 define Device/UBI-factory
