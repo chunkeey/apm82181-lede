@@ -189,7 +189,7 @@ hostapd_set_bss_options() {
 		wps_pushbutton wps_label ext_registrar wps_pbc_in_m1 \
 		wps_device_type wps_device_name wps_manufacturer wps_pin \
 		macfilter ssid wmm uapsd hidden short_preamble rsn_preauth \
-		iapp_interface eapol_version
+		iapp_interface eapol_version acct_server acct_secret acct_port
 
 	set_default isolate 0
 	set_default maxassoc 0
@@ -200,6 +200,7 @@ hostapd_set_bss_options() {
 	set_default wmm 1
 	set_default uapsd 1
 	set_default eapol_version 0
+	set_default acct_port 1813
 
 	append bss_conf "ctrl_interface=/var/run/hostapd"
 	if [ "$isolate" -gt 0 ]; then
@@ -222,6 +223,13 @@ hostapd_set_bss_options() {
 		[ -n "$wpa_group_rekey"  ] && append bss_conf "wpa_group_rekey=$wpa_group_rekey" "$N"
 		[ -n "$wpa_pair_rekey"   ] && append bss_conf "wpa_ptk_rekey=$wpa_pair_rekey"    "$N"
 		[ -n "$wpa_master_rekey" ] && append bss_conf "wpa_gmk_rekey=$wpa_master_rekey"  "$N"
+	}
+
+	[ -n "$acct_server" ] && {
+		append bss_conf "acct_server_addr=$acct_server" "$N"
+		append bss_conf "acct_server_port=$acct_port" "$N"
+		[ -n "$acct_secret" ] && \
+			append bss_conf "acct_server_shared_secret=$acct_secret" "$N"
 	}
 
 	case "$auth_type" in
@@ -253,10 +261,8 @@ hostapd_set_bss_options() {
 		eap)
 			json_get_vars \
 				auth_server auth_secret auth_port \
-				acct_server acct_secret acct_port \
 				dae_client dae_secret dae_port \
-				nasid iapp_interface ownip \
-				eap_server \
+				ownip eap_server \
 				eap_reauth_period dynamic_vlan \
 				vlan_naming vlan_tagged_interface \
 				vlan_bridge vlan_file
