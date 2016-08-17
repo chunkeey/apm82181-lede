@@ -290,9 +290,7 @@ hostapd_set_bss_options() {
 				[ -n "$auth_secret" ] || json_get_var auth_secret key
 
 				set_default auth_port 1812
-				set_default acct_port 1813
 				set_default dae_port 3799
-
 
 				set_default vlan_naming 1
 
