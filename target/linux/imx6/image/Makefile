@@ -84,7 +84,8 @@ define Device/ventana
 	imx6q-gw54xx \
 	imx6q-gw5400-a \
 	imx6q-gw551x \
-	imx6q-gw552x
+	imx6q-gw552x \
+	imx6q-gw553x
   DEVICE_PACKAGES := kmod-thermal-imx kmod-sky2 kmod-usb-chipidea-imx kmod-usb-mxs-phy \
 	kmod-sound-core kmod-sound-soc-imx kmod-sound-soc-imx-sgtl5000 \
 	kmod-can kmod-can-flexcan kmod-can-raw \
@@ -93,6 +94,7 @@ define Device/ventana
 	kobs-ng
   KERNEL += | boot-overlay
   IMAGES := nand.ubi bootfs.tar.gz
+  UBINIZE_OPTS :=
   UBINIZE_PARTS = boot=$$(KDIR_KERNEL_IMAGE).boot.ubifs=15
   IMAGE/nand.ubi := append-ubi
   IMAGE/bootfs.tar.gz := bootfs.tar.gz | install-dtb

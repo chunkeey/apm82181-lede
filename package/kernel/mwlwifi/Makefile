@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mwlwifi
-PKG_VERSION:=10.3.0.18-20160804
+PKG_VERSION:=10.3.0.18-20160823-1
 PKG_RELEASE=1
 
 PKG_LICENSE:=ISC
@@ -17,7 +17,7 @@ PKG_LICENSE_FILES:=
 PKG_SOURCE_URL:=https://github.com/kaloz/mwlwifi
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=d48847cc83954930fdcd98818bbf33e75707b8e1
+PKG_SOURCE_VERSION:=af606563453c819fac156faf2b15b9caef844329
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
 
 PKG_MAINTAINER:=Imre Kaloz <kaloz@openwrt.org>
@@ -29,7 +29,7 @@ include $(INCLUDE_DIR)/package.mk
 define KernelPackage/mwlwifi
   SUBMENU:=Wireless Drivers
   TITLE:=Marvell 88W8864 wireless driver
-  DEPENDS:=+kmod-mac80211 +@DRIVER_11N_SUPPORT @PCI_SUPPORT @TARGET_mvebu
+  DEPENDS:=+kmod-mac80211 +@DRIVER_11N_SUPPORT +@DRIVER_11W_SUPPORT @PCI_SUPPORT @TARGET_mvebu
   FILES:=$(PKG_BUILD_DIR)/mwlwifi.ko
   AUTOLOAD:=$(call AutoLoad,50,mac80211 mwlwifi)
 endef
