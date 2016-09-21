@@ -89,18 +89,17 @@ define Device/ventana
   DEVICE_PACKAGES := kmod-thermal-imx kmod-sky2 kmod-usb-chipidea-imx kmod-usb-mxs-phy \
 	kmod-sound-core kmod-sound-soc-imx kmod-sound-soc-imx-sgtl5000 \
 	kmod-can kmod-can-flexcan kmod-can-raw \
-	kmod-rtc-ds1672 kmod-gpio-pca953x kmod-hwmon-gsc kmod-eeprom-at24 \
+	kmod-hwmon-gsc \
 	kmod-leds-gpio kmod-pps-gpio kmod-gw16083 \
 	kobs-ng
   KERNEL += | boot-overlay
   IMAGES := nand.ubi bootfs.tar.gz
-  UBINIZE_OPTS :=
   UBINIZE_PARTS = boot=$$(KDIR_KERNEL_IMAGE).boot.ubifs=15
   IMAGE/nand.ubi := append-ubi
   IMAGE/bootfs.tar.gz := bootfs.tar.gz | install-dtb
   IMAGE_NAME = $$(IMAGE_PREFIX)-$$(1)-$$(2)
   PAGESIZE := 2048
-  BLOCKSIZE := 128KiB
+  BLOCKSIZE := 128k
   MKUBIFS_OPTS := -m $$(PAGESIZE) -e 124KiB
 endef
 
@@ -110,7 +109,7 @@ define Device/ventana-large
   DEVICE_TITLE := Gateworks Ventana family (large NAND flash)
   IMAGES := nand.ubi
   PAGESIZE := 4096
-  BLOCKSIZE := 256KiB
+  BLOCKSIZE := 256k
   MKUBIFS_OPTS := -m $$(PAGESIZE) -e 248KiB
 endef
 
