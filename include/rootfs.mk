@@ -52,6 +52,8 @@ opkg_package_files = $(wildcard \
 	$(foreach dir,$(PACKAGE_SUBDIRS), \
 	  $(foreach pkg,$(1), $(dir)/$(pkg)_*.ipk)))
 
+TARGET_DIR_ORIG := $(TARGET_ROOTFS_DIR)/root.orig-$(BOARD)
+
 define prepare_rootfs
 	@if [ -d $(TOPDIR)/files ]; then \
 		$(call file_copy,$(TOPDIR)/files/.,$(1)); \
@@ -72,6 +74,7 @@ define prepare_rootfs
 	@-find $(1) -name .svn  | $(XARGS) rm -rf
 	@-find $(1) -name .git  | $(XARGS) rm -rf
 	@-find $(1) -name '.#*' | $(XARGS) rm -f
+	rm -f $(1)/usr/lib/opkg/lists/*
 	rm -f $(1)/usr/lib/opkg/info/*.postinst*
 	rm -f $(1)/usr/lib/opkg/info/*.prerm*
 	$(if $(CONFIG_CLEAN_IPKG),rm -rf $(1)/usr/lib/opkg)
