@@ -1,0 +1,16 @@
+#!/bin/sh
+
+devdir=`dirname $DEVPATH`
+devdir=`dirname $devdir`
+phydir=/sys$devdir/ieee80211
+phyname=`cat $phydir/phy*/name`
+
+if [ -z $phyname -o $ACTION != "add" ]; then exit 0; fi
+
+/sbin/wifi detect > /tmp/wireless.tmp
+[ -s /tmp/wireless.tmp ] && {
+        cat /tmp/wireless.tmp >> /etc/config/wireless
+}
+rm -f /tmp/wireless.tmp
+
+exit 0

@@ -38,18 +38,9 @@ boot() {
 
 	/sbin/kmodloader
 
-	# allow wifi modules time to settle
-	sleep 1
-
-	/sbin/wifi detect > /tmp/wireless.tmp
-	[ -s /tmp/wireless.tmp ] && {
-		cat /tmp/wireless.tmp >> /etc/config/wireless
-	}
-	rm -f /tmp/wireless.tmp
-
 	/bin/config_generate
 	uci_apply_defaults
-	
+
 	# temporary hack until configd exists
 	/sbin/reload_config
 }
