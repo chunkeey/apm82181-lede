@@ -446,9 +446,15 @@ EOF
 	eval "$nas_cmd"
 }
 
+detect_unlock_broadcom_trap() {
+	lock -u /var/lock/wifi-detect-broadcom.lock
+}
 
 detect_broadcom() {
 	local i=-1
+
+	trap detect_unlock_broadcom_trap EXIT
+	lock /var/lock/wifi-detect-broadcom.lock
 
 	while grep -qs "^ *wl$((++i)):" /proc/net/dev; do
 		local channel type
