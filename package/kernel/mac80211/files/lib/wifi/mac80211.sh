@@ -58,7 +58,14 @@ check_mac80211_device() {
 	[ "$phy" = "$dev" ] && found=1
 }
 
+detect_mac80211_unlock_trap() {
+	lock -u /var/lock/wifi-detect-mac80211.lock
+}
+
 detect_mac80211() {
+	trap detect_mac80211_unlock_trap EXIT
+	lock /var/lock/wifi-detect-mac80211.lock
+
 	devidx=0
 	config_load wireless
 	while :; do
