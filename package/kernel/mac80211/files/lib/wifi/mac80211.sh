@@ -92,7 +92,7 @@ detect_mac80211() {
 			htmode="VHT80"
 		}
 
-		[ -n $htmode ] && append ht_capab "	option htmode	$htmode" "$N"
+		[ -n $htmode ] && ht_capab="set wireless.radio${devidx}.htmode=$htmode"
 
 		if [ -x /usr/bin/readlink -a -h /sys/class/ieee80211/${dev} ]; then
 			path="$(readlink -f /sys/class/ieee80211/${dev}/device)"
@@ -104,30 +104,30 @@ detect_mac80211() {
 			case "$path" in
 				platform*/pci*) path="${path##platform/}";;
 			esac
-			dev_id="	option path	'$path'"
+			dev_id="set wireless.radio${devidx}.path='$path'"
 		else
-			dev_id="	option macaddr	$(cat /sys/class/ieee80211/${dev}/macaddress)"
+			dev_id="set wireless.radio${devidx}.macaddr=$(cat /sys/class/ieee80211/${dev}/macaddress)"
 		fi
 
-		cat <<EOF
-config wifi-device  radio$devidx
-	option type     mac80211
-	option channel  ${channel}
-	option hwmode	11${mode_band}
-$dev_id
-$ht_capab
-	# REMOVE THIS LINE TO ENABLE WIFI:
-	option disabled 1
+		uci -q batch > /dev/null <<-EOF
+			set wireless.radio${devidx}=wifi-device
+			set wireless.radio${devidx}.type=mac80211
+			set wireless.radio${devidx}.channel=${channel}
+			set wireless.radio${devidx}.hwmode=11${mode_band}
+			${dev_id}
+			${ht_capab}
+			set wireless.radio${devidx}.disabled=1
 
-config wifi-iface
-	option device   radio$devidx
-	option network  lan
-	option mode     ap
-	option ssid     LEDE
-	option encryption none
-
+			add wireless wifi-iface
+			set wireless.@wifi-iface[-1]=wifi-iface
+			set wireless.@wifi-iface[-1].device=radio${devidx}
+			set wireless.@wifi-iface[-1].network=lan
+			set wireless.@wifi-iface[-1].mode=ap
+			set wireless.@wifi-iface[-1].ssid=LEDE
+			set wireless.@wifi-iface[-1].encryption=none
 EOF
-	devidx=$(($devidx + 1))
-	done
-}
+		uci commit &> /dev/null
 
+		devidx=$(($devidx + 1))
+		done
+}
