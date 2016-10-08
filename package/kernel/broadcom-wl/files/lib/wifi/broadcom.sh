@@ -456,22 +456,22 @@ detect_broadcom() {
 		config_get type wl${i} type
 		[ "$type" = broadcom ] && continue
 		channel=`wlc ifname wl${i} channel`
-		cat <<EOF
-config wifi-device  wl${i}
-	option type     broadcom
-	option channel  ${channel:-11}
-	option txantenna 3
-	option rxantenna 3
-	# REMOVE THIS LINE TO ENABLE WIFI:
-	option disabled 1
 
-config wifi-iface
-	option device   wl${i}
-	option network	lan
-	option mode     ap
-	option ssid     Lede${i#0}
-	option encryption none
+		uci -q batch > /dev/null <<-EOF
+			set wireless.wl${i}=wifi-device
+			set wireless.wl${i}.type=broadcom
+			set wireless.wl${i}.channel=${channel:-11}
+			set wireless.wl${i}.txantenna=3
+			set wireless.wl${i}.rxantenna=3
+			set wireless.wl${i}.disabled=1
 
+			add wireless wifi-iface
+			set wireless.@wifi-iface[-1].device=wl${i}
+			set wireless.@wifi-iface[-1].network=lan
+			set wireless.@wifi-iface[-1].mode=ap
+			set wireless.@wifi-iface[-1].ssid=Lede${i#0}
+			set wireless.@wifi-iface[-1].encryption=none
 EOF
+	uci commit &> /dev/null
 	done
 }
