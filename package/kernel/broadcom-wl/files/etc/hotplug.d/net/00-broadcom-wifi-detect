@@ -1,16 +1,5 @@
 #!/bin/sh
 
-unlock() {
-	rm -f /tmp/wireless.lock
-}
-
-[ "${ACTION}" = "add" ] && {
-	trap unlock EXIT
-	lock /tmp/wireless.lock
-
-	/sbin/wifi detect > /tmp/wireless.tmp
-
-	[ -s /tmp/wireless.tmp ] && cat /tmp/wireless.tmp >> /etc/config/wireless
-
-	rm -f /tmp/wireless.tmp
+[ "${ACTION}" = "add" ] && [ "${INTERFACE%%[0-9]}" = "wl" ] {
+	/sbin/wifi detect
 }
