@@ -472,7 +472,6 @@ detect_broadcom() {
 			set wireless.wl${i}.disabled=1
 
 			add wireless wifi-iface
-			set wireless.@wifi-iface[-1]=wifi-iface
 			set wireless.@wifi-iface[-1].device=wl${i}
 			set wireless.@wifi-iface[-1].network=lan
 			set wireless.@wifi-iface[-1].mode=ap

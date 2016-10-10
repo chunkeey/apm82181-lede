@@ -126,7 +126,6 @@ detect_mac80211() {
 			set wireless.radio${devidx}.disabled=1
 
 			add wireless wifi-iface
-			set wireless.@wifi-iface[-1]=wifi-iface
 			set wireless.@wifi-iface[-1].device=radio${devidx}
 			set wireless.@wifi-iface[-1].network=lan
 			set wireless.@wifi-iface[-1].mode=ap
