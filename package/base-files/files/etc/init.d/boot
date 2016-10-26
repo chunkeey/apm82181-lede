@@ -38,6 +38,11 @@ boot() {
 
 	/sbin/kmodloader
 
+	[ ! -f /etc/config/wireless ] && {
+		# compat for brcm47xx and mvebu
+		sleep 1
+	}
+
 	/bin/config_generate
 	uci_apply_defaults
 

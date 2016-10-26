@@ -66,6 +66,7 @@ ar71xx_setup_interfaces()
 	bullet-m|\
 	c-55|\
 	cap4200ag|\
+	eap120|\
 	eap300v2|\
 	eap7660d|\
 	el-mini|\
@@ -105,6 +106,7 @@ ar71xx_setup_interfaces()
 	tl-wa901nd-v3|\
 	tl-wa901nd-v4|\
 	tl-wr703n|\
+	tl-wr802n-v1|\
 	tube2h|\
 	unifiac-lite|\
 	wndap360|\
@@ -199,6 +201,10 @@ ar71xx_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth1" "1:lan" "3:lan"
 		;;
+	c-60)
+		ucidef_add_switch "switch0" \
+			"0@eth0" "3:wan" "4:lan"
+		;;
 	cap324)
 		ucidef_set_interface_lan "eth0" "dhcp"
 		;;
@@ -285,6 +291,7 @@ ar71xx_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "3@eth1"
 		;;
+	dir-869-a1|\
 	epg5000|\
 	esr1750)
 		ucidef_add_switch "switch0" \
@@ -299,6 +306,7 @@ ar71xx_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth0" "2:lan" "3:lan"
 		;;
+	dw33d|\
 	f9k1115v2)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		ucidef_add_switch "switch0" \
@@ -434,6 +442,7 @@ ar71xx_setup_macs()
 	esr900)
 		wan_mac=$(mtd_get_mac_ascii u-boot-env "wanaddr")
 		;;
+	dir-869-a1|\
 	mynet-n750)
 		wan_mac=$(mtd_get_mac_ascii devdata "wanmac")
 		;;

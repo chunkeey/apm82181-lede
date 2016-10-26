@@ -92,6 +92,10 @@ c-55)
 	ucidef_set_led_wlan "wlan_amber" "WLAN_AMBER" "$board:amber:wlan" "phy0tpt"
 	ucidef_set_led_wlan "wlan_green" "WLAN_GREEN" "$board:green:wlan" "phy1tpt"
 	;;
+c-60)
+	ucidef_set_led_wlan "wlan1_green" "WLAN1_GREEN" "$board:green:wlan1" "phy0tpt"
+	ucidef_set_led_wlan "wlan2_green" "WLAN2_GREEN" "$board:green:wlan2" "phy1tpt"
+	;;
 cap4200ag)
 	ucidef_set_led_default "lan_green" "LAN_GREEN" "senao:green:lan" "1"
 	ucidef_set_led_wlan "wlan_amber" "WLAN_AMBER" "senao:amber:wlan" "phy0tpt"
@@ -137,6 +141,12 @@ dragino2)
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:red:wlan" "phy0tpt"
 	ucidef_set_led_netdev "lan" "LAN" "$board:red:lan" "eth0"
 	ucidef_set_led_netdev "wan" "WAN" "$board:red:wan" "eth1"
+	;;
+dw33d)
+	ucidef_set_led_usbdev "mmc" "MMC" "$board:blue:mmc" "1-1"
+	ucidef_set_led_usbdev "usb" "USB" "$board:blue:usb" "2-1"
+	ucidef_set_led_netdev "internet" "INTERNET" "$board:blue:internet" "eth0"
+	ucidef_set_led_wlan "wlan2g" "WLAN-2.4G" "$board:blue:wlan-2g" "phy1tpt"
 	;;
 eap300v2)
 	ucidef_set_led_netdev "lan" "LAN" "engenius:blue:lan" "eth0"
@@ -505,6 +515,9 @@ archer-c7)
 	ucidef_set_led_usbdev "usb2" "USB2" "tp-link:green:usb2" "2-1"
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "tp-link:blue:wlan2g" "phy1tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "tp-link:blue:wlan5g" "phy0tpt"
+	;;
+tl-wr802n-v1)
+	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:blue:system" "phy0tpt"
 	;;
 tl-wr941nd-v6)
 	ucidef_set_led_netdev "wan" "WAN" "tp-link:blue:wan" "eth0"

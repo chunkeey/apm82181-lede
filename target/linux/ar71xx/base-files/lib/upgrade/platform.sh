@@ -262,6 +262,7 @@ platform_check_image() {
 	bxu2000n-2-a1|\
 	db120|\
 	dr344|\
+	dw33d|\
 	f9k1115v2|\
 	hornet-ub|\
 	mr12|\
@@ -370,6 +371,7 @@ platform_check_image() {
 	tl-wr720n-v3|\
 	tl-wr741nd-v4|\
 	tl-wr741nd|\
+	tl-wr802n-v1|\
 	tl-wr810n|\
 	tl-wr841n-v11|\
 	tl-wr841n-v1|\
@@ -424,8 +426,17 @@ platform_check_image() {
 	tew-673gru)
 		dir825b_check_image "$1" && return 0
 		;;
+	c-60|\
+	nbg6716|\
+	r6100|\
+	wndr3700v4|\
+	wndr4300)
+		nand_do_platform_check $board $1
+		return $?
+		;;
 	cpe210|\
-	cpe510)
+	cpe510|\
+	eap120)
 		tplink_pharos_check_image "$1" && return 0
 		return 1
 		;;
@@ -453,6 +464,7 @@ platform_check_image() {
 		merakinand_do_platform_check $board $1
 		return $?
 		;;
+	dir-869-a1|\
 	mynet-n600|\
 	mynet-n750|\
 	qihoo-c301)
@@ -483,13 +495,6 @@ platform_check_image() {
 		}
 
 		return 0
-		;;
-	nbg6716|\
-	r6100|\
-	wndr3700v4|\
-	wndr4300)
-		nand_do_platform_check $board $1
-		return $?
 		;;
 	tube2h)
 		alfa_check_image "$1" && return 0
@@ -536,15 +541,16 @@ platform_pre_upgrade() {
 	local board=$(ar71xx_board_name)
 
 	case "$board" in
-	mr18|\
-	z1)
-		merakinand_do_upgrade "$1"
-		;;
+	c-60|\
 	nbg6716|\
 	r6100|\
 	wndr3700v4|\
 	wndr4300)
 		nand_do_upgrade "$1"
+		;;
+	mr18|\
+	z1)
+		merakinand_do_upgrade "$1"
 		;;
 	esac
 }

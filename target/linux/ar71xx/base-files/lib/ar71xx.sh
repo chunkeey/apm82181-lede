@@ -217,6 +217,9 @@ tplink_board_detect() {
 	"080100"*)
 		model="TP-Link TL-WA801N/ND"
 		;;
+	"080200"*)
+		model="TP-Link TL-WR802N"
+		;;
 	"083000"*)
 		model="TP-Link TL-WA830RE"
 
@@ -361,6 +364,9 @@ tplink_pharos_board_detect() {
 	'CPE520(TP-LINK|UN|N300-5)')
 		model='TP-Link CPE520'
 		;;
+	'EAP120(TP-LINK|UN|N300-2)')
+		model='TP-Link EAP120'
+		;;
 	esac
 
 	[ -n "$model" ] && AR71XX_MODEL="$model v$2"
@@ -482,6 +488,9 @@ ar71xx_board_detect() {
 	*C-55)
 		name="c-55"
 		;;
+	*C-60)
+		name="c-60"
+		;;
 	*CAP4200AG)
 		name="cap4200ag"
 		;;
@@ -536,6 +545,9 @@ ar71xx_board_detect() {
 	*"DIR-835 rev. A1")
 		name="dir-835-a1"
 		;;
+	*"DIR-869 rev. A1")
+		name="dir-869-a1"
+		;;
 	*"dLAN Hotspot")
 		name="dlan-hotspot"
 		;;
@@ -556,6 +568,13 @@ ar71xx_board_detect() {
 		;;
 	*"Domino Pi")
 		name="gl-domino"
+		;;
+	*"DW33D")
+		name="dw33d"
+		;;
+	*"EAP120")
+		name="eap120"
+		tplink_pharos_board_detect
 		;;
 	*"EAP300 v2")
 		name="eap300v2"
@@ -932,6 +951,9 @@ ar71xx_board_detect() {
 		;;
 	*"TL-WA801ND v3")
 		name="tl-wa801nd-v3"
+		;;
+	*"TL-WR802N v1")
+		name="tl-wr802n-v1"
 		;;
 	*TL-WA901ND)
 		name="tl-wa901nd"

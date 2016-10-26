@@ -1,5 +1,5 @@
 #!/bin/sh
 
 [ "${ACTION}" = "add" ] && {
-	/sbin/wifi detect
+	/sbin/wifi config
 }

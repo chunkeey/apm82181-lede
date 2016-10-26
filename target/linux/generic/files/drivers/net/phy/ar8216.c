@@ -2127,10 +2127,7 @@ ar8xxx_is_possible(struct mii_bus *bus)
 				 dev_name(&bus->dev), i, phy_id);
 		}
 	}
-	if (found_phys == 0)
-		return false;
-
-	return true;
+	return !!found_phys;
 }
 
 static int

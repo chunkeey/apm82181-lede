@@ -463,7 +463,7 @@ detect_broadcom() {
 		[ "$type" = broadcom ] && continue
 		channel=`wlc ifname wl${i} channel`
 
-		uci -q batch > /dev/null <<-EOF
+		uci -q batch <<-EOF
 			set wireless.wl${i}=wifi-device
 			set wireless.wl${i}.type=broadcom
 			set wireless.wl${i}.channel=${channel:-11}
@@ -471,13 +471,13 @@ detect_broadcom() {
 			set wireless.wl${i}.rxantenna=3
 			set wireless.wl${i}.disabled=1
 
-			add wireless wifi-iface
-			set wireless.@wifi-iface[-1].device=wl${i}
-			set wireless.@wifi-iface[-1].network=lan
-			set wireless.@wifi-iface[-1].mode=ap
-			set wireless.@wifi-iface[-1].ssid=Lede${i#0}
-			set wireless.@wifi-iface[-1].encryption=none
+			set wireless.default_wl${i}=wifi-iface
+			set wireless.default_wl${i}.device=wl${i}
+			set wireless.default_wl${i}.network=lan
+			set wireless.default_wl${i}.mode=ap
+			set wireless.default_wl${i}.ssid=Lede${i#0}
+			set wireless.default_wl${i}.encryption=none
 EOF
-	uci commit &> /dev/null
+		uci -q commit wireless
 	done
 }

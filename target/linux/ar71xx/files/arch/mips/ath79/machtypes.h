@@ -47,6 +47,7 @@ enum ath79_mach_type {
 	ATH79_MACH_BHU_BXU2000N2_A1,		/* BHU BXU2000n-2 A1 */
 	ATH79_MACH_BSB,				/* Smart Electronics Black Swift board */
 	ATH79_MACH_C55,				/* AirTight Networks C-55 */
+	ATH79_MACH_C60,				/* AirTight Networks C-60 */
 	ATH79_MACH_CAP324,			/* PowerCloud CAP324 */
 	ATH79_MACH_CAP4200AG,			/* Senao CAP4200AG */
 	ATH79_MACH_CARAMBOLA2,			/* 8devices Carambola2 */
@@ -67,12 +68,15 @@ enum ath79_mach_type {
 	ATH79_MACH_DIR_825_B1,			/* D-Link DIR-825 rev. B1 */
 	ATH79_MACH_DIR_825_C1,			/* D-Link DIR-825 rev. C1 */
 	ATH79_MACH_DIR_835_A1,			/* D-Link DIR-835 rev. A1 */
+	ATH79_MACH_DIR_869_A1,			/* D-Link DIR-869 rev. A1 */
 	ATH79_MACH_DLAN_HOTSPOT,		/* devolo dLAN Hotspot */
 	ATH79_MACH_DLAN_PRO_1200_AC,		/* devolo dLAN pro 1200+ WiFi ac*/
 	ATH79_MACH_DLAN_PRO_500_WP,		/* devolo dLAN pro 500 Wireless+ */
+	ATH79_MACH_DOMYWIFI_DW33D,		/* DomyWifi DW33D */
 	ATH79_MACH_DR344,			/* Wallys DR344 */
 	ATH79_MACH_DR531,			/* Wallys DR531 */
 	ATH79_MACH_DRAGINO2,			/* Dragino Version 2 */
+	ATH79_MACH_EAP120,			/* TP-LINK EAP120 */
 	ATH79_MACH_EAP300V2,			/* EnGenius EAP300 v2 */
 	ATH79_MACH_EAP7660D,			/* Senao EAP7660D */
 	ATH79_MACH_EL_M150,			/* EasyLink EL-M150 */
@@ -202,6 +206,7 @@ enum ath79_mach_type {
 	ATH79_MACH_TL_WR720N_V3,		/* TP-LINK TL-WR720N v3/v4 */
 	ATH79_MACH_TL_WR741ND,			/* TP-LINK TL-WR741ND */
 	ATH79_MACH_TL_WR741ND_V4,		/* TP-LINK TL-WR741ND v4 */
+	ATH79_MACH_TL_WR802N_V1,		/* TP-LINK TL-WR802N v1 */
 	ATH79_MACH_TL_WR810N,			/* TP-LINK TL-WR810N */
 	ATH79_MACH_TL_WR841N_V1,		/* TP-LINK TL-WR841N v1 */
 	ATH79_MACH_TL_WR841N_V11,		/* TP-LINK TL-WR841N/ND v11 */

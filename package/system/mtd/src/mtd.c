@@ -586,7 +586,7 @@ resume:
 				if (!quiet)
 					fprintf(stderr, "\b\b\b   ");
 				if (quiet < 2)
-					fprintf(stderr, "\nAppending jffs2 data from %s to %s...", jffs2file, mtd);
+					fprintf(stderr, "\nAppending jffs2 data from %s to %s..\n.", jffs2file, mtd);
 				/* got an EOF marker - this is the place to add some jffs2 data */
 				skip = mtd_replace_jffs2(mtd, fd, e, jffs2file);
 				jffs2_replaced = 1;
@@ -732,7 +732,7 @@ static void usage(void)
 	"        -d <name>               directory for jffs2write, defaults to \"tmp\"\n"
 	"        -j <name>               integrate <file> into jffs2 data when writing an image\n"
 	"        -s <number>             skip the first n bytes when appending data to the jffs2 partiton, defaults to \"0\"\n"
-	"        -p                      write beginning at partition offset\n"
+	"        -p <number>             write beginning at partition offset\n"
 	"        -l <length>             the length of data that we want to dump\n");
 	if (mtd_fixtrx) {
 	    fprintf(stderr,
