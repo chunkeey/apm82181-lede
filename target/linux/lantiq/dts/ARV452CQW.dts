@@ -2,6 +2,8 @@
 
 #include "danube.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	model = "ARV452CQW - Arcor 801";
 
@@ -135,7 +137,6 @@
 			lantiq,external-clock;
 			gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
 		};
-
 	};
 
 /*
@@ -155,7 +156,7 @@
 		wps {
 			label = "wps";
 			gpios = <&gpio 29 GPIO_ACTIVE_LOW>;
-			linux,code = <BTN_1>;
+			linux,code = <KEY_WPS_BUTTON>;
 		};
 		reset {
 			label = "reset";
@@ -209,7 +210,7 @@
 		};
 		voice {
 			label = "arv452cqw:blue:sprache";
-			gpios = <&gpiomm 4  1>;
+			gpios = <&gpiomm 4 1>;
 		};
 		usb: usb {
 			label = "arv452cqw:blue:usb";

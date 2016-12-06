@@ -20,7 +20,7 @@ alias ll='ls -alF --color=auto'
 
 [ -z "$KSH_VERSION" -o \! -s /etc/mkshrc ] || . /etc/mkshrc
 
-[ -x /usr/bin/arp ] || arp() { cat /proc/net/arp; }
+[ -x /usr/bin/arp -o -x /sbin/arp ] || arp() { cat /proc/net/arp; }
 [ -x /usr/bin/ldd ] || ldd() { LD_TRACE_LOADED_OBJECTS=1 $*; }
 
 [ -n "$FAILSAFE" ] || {
@@ -41,3 +41,12 @@ in order to prevent unauthorized SSH logins.
 --------------------------------------------------
 EOF
 fi
+
+service() {
+	[ -f "/etc/init.d/$1" ] || {
+		echo -n "$1 does not exist. the following services are available :"
+		ls "/etc/init.d"
+		return 1
+	}
+	/etc/init.d/$@
+}

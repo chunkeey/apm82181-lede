@@ -44,14 +44,10 @@
 				};
 			};
 		};
+
 		pcie@d900000 {
 			status = "disabled";
 		};
-	};
-
-	ralink_eep {
-		compatible = "ralink,eeprom";
-		ralink,eeprom = "RT3062.eeprom";
 	};
 
 	gpio-leds {
@@ -63,5 +59,13 @@
 			label = "p2812hnuf1:green:usb2";
 			gpios = <&gpio 44 GPIO_ACTIVE_LOW>;
 		};
+	};
+};
+
+&pci0 {
+	wifi@1814,3062 {
+		compatible = "pci1814,3062";
+		reg = <0x7000 0 0 0 0>;
+		ralink,eeprom = "RT3062.eeprom";
 	};
 };

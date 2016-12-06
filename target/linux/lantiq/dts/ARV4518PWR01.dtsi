@@ -1,5 +1,7 @@
 #include "danube.dtsi"
 
+#include <dt-bindings/input/input.h>
+
 / {
 	chosen {
 		bootargs = "console=ttyLTQ0,115200 init=/etc/preinit";
@@ -125,7 +127,6 @@
 			gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
 			req-mask = <0xf>;
 		};
-
 	};
 
 	gpio-keys-polled {
