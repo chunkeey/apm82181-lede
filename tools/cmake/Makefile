@@ -24,8 +24,7 @@ HOST_CONFIGURE_CMD := \
 	LDFLAGS="$$$$(pkg-config --static --libs libcrypto)" \
 		$(BASH) ./configure
 
-HOST_CONFIGURE_VARS := \
-	LDFLAGS="$$$$(pkg-config --static --libs libcrypto)"
+HOST_CONFIGURE_VARS :=
 
 HOST_CONFIGURE_ARGS := \
 	--prefix=$(STAGING_DIR_HOST)
