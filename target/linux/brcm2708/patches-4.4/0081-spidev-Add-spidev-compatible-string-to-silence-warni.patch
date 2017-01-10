@@ -10,10 +10,10 @@ See: https://github.com/raspberrypi/linux/issues/1054
 
 --- a/drivers/spi/spidev.c
 +++ b/drivers/spi/spidev.c
-@@ -695,6 +695,7 @@ static struct class *spidev_class;
- static const struct of_device_id spidev_dt_ids[] = {
+@@ -696,6 +696,7 @@ static const struct of_device_id spidev_
  	{ .compatible = "rohm,dh2228fv" },
  	{ .compatible = "lineartechnology,ltc2488" },
+ 	{ .compatible = "siliconlabs,si3210" },
 +	{ .compatible = "spidev" },
  	{},
  };

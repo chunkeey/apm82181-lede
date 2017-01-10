@@ -173,6 +173,7 @@ define KernelPackage/ath/config
 
 	config PACKAGE_ATH_DEBUG
 		bool "Atheros wireless debugging"
+		select KERNEL_RELAY
 		help
 		  Say Y, if you want to debug atheros wireless drivers.
 		  Only ath9k & ath10k make use of this.
@@ -205,7 +206,7 @@ define KernelPackage/ath5k
   $(call KernelPackage/mac80211/Default)
   TITLE:=Atheros 5xxx wireless cards support
   URL:=https://wireless.wiki.kernel.org/en/users/drivers/ath5k
-  DEPENDS+= @PCI_SUPPORT||@TARGET_ath25 +kmod-ath
+  DEPENDS+= @PCI_SUPPORT||@TARGET_ath25 +kmod-ath +@DRIVER_11W_SUPPORT
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath5k/ath5k.ko
   AUTOLOAD:=$(call AutoProbe,ath5k)
 endef
@@ -220,7 +221,7 @@ define KernelPackage/ath9k-common
   TITLE:=Atheros 802.11n wireless devices (common code for ath9k and ath9k_htc)
   URL:=https://wireless.wiki.kernel.org/en/users/drivers/ath9k
   HIDDEN:=1
-  DEPENDS+= @PCI_SUPPORT||USB_SUPPORT||TARGET_ar71xx +kmod-ath +@DRIVER_11N_SUPPORT +@DRIVER_11W_SUPPORT +@KERNEL_RELAY
+  DEPENDS+= @PCI_SUPPORT||USB_SUPPORT||TARGET_ar71xx +kmod-ath +@DRIVER_11N_SUPPORT +@DRIVER_11W_SUPPORT
   FILES:= \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath9k/ath9k_common.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath9k/ath9k_hw.ko
@@ -277,7 +278,7 @@ define KernelPackage/ath10k
   $(call KernelPackage/mac80211/Default)
   TITLE:=Atheros 802.11ac wireless cards support
   URL:=https://wireless.wiki.kernel.org/en/users/Drivers/ath10k
-  DEPENDS+= @PCI_SUPPORT +kmod-ath +@DRIVER_11N_SUPPORT +@DRIVER_11W_SUPPORT +@KERNEL_RELAY
+  DEPENDS+= @PCI_SUPPORT +kmod-ath +@DRIVER_11N_SUPPORT +@DRIVER_11AC_SUPPORT +@DRIVER_11W_SUPPORT
   FILES:= \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath10k/ath10k_core.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath10k/ath10k_pci.ko
@@ -686,7 +687,7 @@ define KernelPackage/brcmfmac
   $(call KernelPackage/mac80211/Default)
   TITLE:=Broadcom IEEE802.11n USB FullMAC WLAN driver
   URL:=https://wireless.wiki.kernel.org/en/users/drivers/brcm80211
-  DEPENDS+= @USB_SUPPORT +kmod-cfg80211 +@DRIVER_11N_SUPPORT +kmod-brcmutil \
+  DEPENDS+= @USB_SUPPORT +kmod-cfg80211 +@DRIVER_11N_SUPPORT +@DRIVER_11AC_SUPPORT +kmod-brcmutil \
 	+BRCMFMAC_SDIO:kmod-mmc \
 	+BRCMFMAC_USB:kmod-usb-core +BRCMFMAC_USB:brcmfmac-firmware-usb
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko
@@ -1476,9 +1477,6 @@ ifdef CONFIG_PACKAGE_MAC80211_DEBUGFS
   config-y += \
 	CFG80211_DEBUGFS \
 	MAC80211_DEBUGFS \
-	ATH9K_DEBUGFS \
-	ATH9K_HTC_DEBUGFS \
-	ATH10K_DEBUGFS \
 	CARL9170_DEBUGFS \
 	ATH5K_DEBUG
 endif
@@ -1498,7 +1496,7 @@ config-$(call config_package,lib80211) += LIB80211 LIB80211_CRYPT_WEP LIB80211_C
 config-$(call config_package,airo) += AIRO
 
 config-$(call config_package,ath) += ATH_CARDS ATH_COMMON
-config-$(CONFIG_PACKAGE_ATH_DEBUG) += ATH_DEBUG ATH10K_DEBUG ATH9K_STATION_STATISTICS
+config-$(CONFIG_PACKAGE_ATH_DEBUG) += ATH_DEBUG ATH10K_DEBUG ATH9K_DEBUGFS ATH9K_HTC_DEBUGFS ATH9K_STATION_STATISTICS
 config-$(CONFIG_PACKAGE_ATH_DFS) += ATH9K_DFS_CERTIFIED ATH10K_DFS_CERTIFIED
 
 config-$(call config_package,ath9k) += ATH9K

@@ -343,6 +343,7 @@ platform_check_image() {
 	omy-x1|\
 	onion-omega|\
 	oolite|\
+	re450|\
 	smart-300|\
 	som9331|\
 	tellstick-znet-lite|\
@@ -378,6 +379,7 @@ platform_check_image() {
 	tl-wpa8630|\
 	tl-wr1041n-v2|\
 	tl-wr1043nd-v2|\
+	tl-wr1043nd-v4|\
 	tl-wr1043nd|\
 	tl-wr2543n|\
 	tl-wr703n|\
@@ -451,7 +453,9 @@ platform_check_image() {
 		;;
 	cpe210|\
 	cpe510|\
-	eap120)
+	eap120|\
+	wbs210|\
+	wbs510)
 		tplink_pharos_check_image "$1" && return 0
 		return 1
 		;;

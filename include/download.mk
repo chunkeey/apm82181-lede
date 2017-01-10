@@ -9,6 +9,12 @@
 OPENWRT_GIT = http://git.openwrt.org
 LEDE_GIT = https://git.lede-project.org
 
+ifdef PKG_SOURCE_VERSION
+PKG_VERSION ?= $(if $(PKG_SOURCE_DATE),$(PKG_SOURCE_DATE)-)$(call version_abbrev,$(PKG_SOURCE_VERSION))
+PKG_SOURCE_SUBDIR ?= $(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE ?= $(PKG_SOURCE_SUBDIR).tar.xz
+endif
+
 DOWNLOAD_RDEP=$(STAMP_PREPARED) $(HOST_STAMP_PREPARED)
 
 # Try to guess the download method from the URL
@@ -44,20 +50,83 @@ define dl_tar_pack
 	$(TAR) --numeric-owner --owner=0 --group=0 --sort=name $$$${TAR_TIMESTAMP:+--mtime="$$$$TAR_TIMESTAMP"} -c $(2) | $(call dl_pack,$(1))
 endef
 
+ifdef CHECK
+check_escape=$(subst ','\'',$(1))
+#')
+
+check_warn_nofix = $(info $(shell printf "$(_R)WARNING: %s$(_N)" '$(call check_escape,$(call C_$(1),$(2),$(3),$(4)))'))
+ifndef FIXUP
+  check_warn = $(check_warn_nofix)
+else
+  check_warn = $(if $(filter-out undefined,$(origin F_$(1))),$(filter ,$(shell $(call F_$(1),$(2),$(3),$(4)) >&2)),$(check_warn_nofix))
+endif
+
+gen_sha256sum = $(shell mkhash sha256 $(DL_DIR)/$(1))
+
+ifdef FIXUP
+F_hash_deprecated = $(SCRIPT_DIR)/fixup-makefile.pl $(CURDIR)/Makefile fix-hash $(3) $(call gen_sha256sum,$(1)) $(2)
+F_hash_mismatch = $(F_hash_deprecated)
+F_hash_missing = $(SCRIPT_DIR)/fixup-makefile.pl $(CURDIR)/Makefile add-hash $(3) $(call gen_sha256sum,$(1))
+endif
+
+C_download_missing = $(1) is missing, please run make download before re-running this check
+C_hash_mismatch = $(3) does not match $(1) hash $(call gen_sha256sum,$(1))
+C_hash_deprecated = $(3) uses deprecated hash, set to $(call gen_sha256sum,$(1))
+C_hash_missing = $(3) is missing, set to $(call gen_sha256sum,$(1))
+
+check_hash = \
+  $(if $(wildcard $(DL_DIR)/$(1)), \
+    $(if $(filter-out x,$(2)), \
+      $(if $(filter 64,$(shell printf '%s' '$(2)' | wc -c)), \
+        $(if $(filter $(2),$(call gen_sha256sum,$(1))),, \
+          $(call check_warn,hash_mismatch,$(1),$(2),$(3)) \
+        ), \
+        $(call check_warn,hash_deprecated,$(1),$(2),$(3)), \
+      ), \
+      $(call check_warn,hash_missing,$(1),$(2),$(3)) \
+    ), \
+    $(call check_warn,download_missing,$(1),$(2),$(3)) \
+  )
+
+ifdef FIXUP
+F_md5_deprecated = $(SCRIPT_DIR)/fixup-makefile.pl $(CURDIR)/Makefile rename-var $(2) $(3)
+endif
+
+C_md5_deprecated = Use of $(2) is deprecated, switch to $(3)
+
+# Skip MD5SUM check in feeds until OpenWrt is updated
+ifneq ($(filter $(foreach dir,package tools toolchain, $(TOPDIR)/$(dir)/%),$(CURDIR)),)
+check_md5 = \
+  $(if $(filter-out x,$(1)), \
+    $(call check_warn,md5_deprecated,$(1),$(2),$(3)) \
+  )
+endif
+
+hash_var = $(if $(filter-out x,$(1)),MD5SUM,HASH)
+endif
+
 define DownloadMethod/unknown
 	@echo "ERROR: No download method available"; false
 endef
 
 define DownloadMethod/default
-	$(SCRIPT_DIR)/download.pl "$(DL_DIR)" "$(FILE)" "$(HASH)" "$(URL_FILE)" $(foreach url,$(URL),"$(url)")
+	$(SCRIPT_DIR)/download.pl "$(DL_DIR)" "$(FILE)" "$(HASH)" "$(URL_FILE)" $(foreach url,$(URL),"$(url)") \
+	$(if $(filter check,$(1)), \
+		$(call check_hash,$(FILE),$(HASH),$(2)$(call hash_var,$(MD5SUM))) \
+		$(call check_md5,$(MD5SUM),$(2)MD5SUM,$(2)HASH) \
+	)
 endef
 
 define wrap_mirror
-$(if $(if $(MIRROR),$(filter-out x,$(MIRROR_HASH))),$(SCRIPT_DIR)/download.pl "$(DL_DIR)" "$(FILE)" "$(MIRROR_HASH)" "" || ( $(1) ),$(1))
+$(if $(if $(MIRROR),$(filter-out x,$(MIRROR_HASH))),$(SCRIPT_DIR)/download.pl "$(DL_DIR)" "$(FILE)" "$(MIRROR_HASH)" "" || ( $(3) ),$(3)) \
+$(if $(filter check,$(1)), \
+	$(call check_hash,$(FILE),$(MIRROR_HASH),$(2)MIRROR_$(call hash_var,$(MIRROR_MD5SUM))) \
+	$(call check_md5,$(MIRROR_MD5SUM),$(2)MIRROR_MD5SUM,$(2)MIRROR_HASH) \
+)
 endef
 
 define DownloadMethod/cvs
-	$(call wrap_mirror, \
+	$(call wrap_mirror,$(1),$(2), \
 		echo "Checking out files from the cvs repository..."; \
 		mkdir -p $(TMP_DIR)/dl && \
 		cd $(TMP_DIR)/dl && \
@@ -72,7 +141,7 @@ define DownloadMethod/cvs
 endef
 
 define DownloadMethod/svn
-	$(call wrap_mirror, \
+	$(call wrap_mirror,$(1),$(2), \
 		echo "Checking out files from the svn repository..."; \
 		mkdir -p $(TMP_DIR)/dl && \
 		cd $(TMP_DIR)/dl && \
@@ -90,7 +159,7 @@ define DownloadMethod/svn
 endef
 
 define DownloadMethod/git
-	$(call wrap_mirror, \
+	$(call wrap_mirror,$(1),$(2), \
 		echo "Checking out files from the git repository..."; \
 		mkdir -p $(TMP_DIR)/dl && \
 		cd $(TMP_DIR)/dl && \
@@ -109,7 +178,7 @@ define DownloadMethod/git
 endef
 
 define DownloadMethod/bzr
-	$(call wrap_mirror, \
+	$(call wrap_mirror,$(1),$(2), \
 		echo "Checking out files from the bzr repository..."; \
 		mkdir -p $(TMP_DIR)/dl && \
 		cd $(TMP_DIR)/dl && \
@@ -125,7 +194,7 @@ define DownloadMethod/bzr
 endef
 
 define DownloadMethod/hg
-	$(call wrap_mirror, \
+	$(call wrap_mirror,$(1),$(2), \
 		echo "Checking out files from the hg repository..."; \
 		mkdir -p $(TMP_DIR)/dl && \
 		cd $(TMP_DIR)/dl && \
@@ -142,7 +211,7 @@ define DownloadMethod/hg
 endef
 
 define DownloadMethod/darcs
-	$(call wrap_mirror, \
+	$(call wrap_mirror, $(1), $(2), \
 		echo "Checking out files from the darcs repository..."; \
 		mkdir -p $(TMP_DIR)/dl && \
 		cd $(TMP_DIR)/dl && \
@@ -209,6 +278,11 @@ define Download
 
   $(DL_DIR)/$(FILE):
 	mkdir -p $(DL_DIR)
-	$(call locked,$(if $(DownloadMethod/$(call dl_method,$(URL),$(PROTO))),$(DownloadMethod/$(call dl_method,$(URL),$(PROTO))),$(DownloadMethod/unknown)),$(FILE))
+	$(call locked, \
+		$(if $(DownloadMethod/$(call dl_method,$(URL),$(PROTO))), \
+			$(call DownloadMethod/$(call dl_method,$(URL),$(PROTO)),check,$(if $(filter default,$(1)),PKG_,Download/$(1):)), \
+			$(DownloadMethod/unknown) \
+		),\
+		$(FILE))
 
 endef

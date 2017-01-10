@@ -510,6 +510,14 @@ ar71xx_board_detect() {
 	*CPE870)
 		name="cpe870"
 		;;
+	*WBS210)
+		name="wbs210"
+		tplink_pharos_board_detect
+		;;
+	*WBS510)
+		name="wbs510"
+		tplink_pharos_board_detect
+		;;
 	*CR3000)
 		name="cr3000"
 		;;
@@ -770,6 +778,9 @@ ar71xx_board_detect() {
 	*"Qihoo 360 C301")
 		name="qihoo-c301"
 		;;
+	*"RE450")
+		name="re450"
+		;;
 	*"RouterBOARD 411/A/AH")
 		name="rb-411"
 		;;
@@ -908,6 +919,9 @@ ar71xx_board_detect() {
 		;;
 	*"TL-WR1043ND v2")
 		name="tl-wr1043nd-v2"
+		;;
+	*"TL-WR1043ND v4")
+		name="tl-wr1043nd-v4"
 		;;
 	*TL-WR2543N*)
 		name="tl-wr2543n"

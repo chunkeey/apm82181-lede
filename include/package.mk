@@ -7,7 +7,9 @@
 
 __package_mk:=1
 
-all: $(if $(DUMP),dumpinfo,compile)
+all: $(if $(DUMP),dumpinfo,$(if $(CHECK),check,compile))
+
+include $(INCLUDE_DIR)/download.mk
 
 PKG_BUILD_DIR ?= $(BUILD_DIR)/$(PKG_NAME)$(if $(PKG_VERSION),-$(PKG_VERSION))
 PKG_INSTALL_DIR ?= $(PKG_BUILD_DIR)/ipkg-install
@@ -15,17 +17,12 @@ PKG_BUILD_PARALLEL ?=
 PKG_USE_MIPS16 ?= 1
 PKG_IREMAP ?= 1
 
-ifneq ($(CONFIG_PKG_BUILD_USE_JOBSERVER),)
-  MAKE_J:=$(if $(MAKE_JOBSERVER),$(MAKE_JOBSERVER) $(if $(filter 3.% 4.0 4.1,$(MAKE_VERSION)),-j))
-else
-  MAKE_J:=-j$(CONFIG_PKG_BUILD_JOBS)
-endif
+MAKE_J:=$(if $(MAKE_JOBSERVER),$(MAKE_JOBSERVER) $(if $(filter 3.% 4.0 4.1,$(MAKE_VERSION)),-j))
 
 ifeq ($(strip $(PKG_BUILD_PARALLEL)),0)
 PKG_JOBS?=-j1
 else
-PKG_JOBS?=$(if $(PKG_BUILD_PARALLEL)$(CONFIG_PKG_DEFAULT_PARALLEL),\
-	$(if $(CONFIG_PKG_BUILD_PARALLEL),$(MAKE_J),-j1),-j1)
+PKG_JOBS?=$(if $(PKG_BUILD_PARALLEL),$(MAKE_J),-j1)
 endif
 ifdef CONFIG_USE_MIPS16
   ifeq ($(strip $(PKG_USE_MIPS16)),1)
@@ -92,7 +89,6 @@ endif
 
 PKG_INSTALL_STAMP:=$(PKG_INFO_DIR)/$(PKG_DIR_NAME).$(if $(BUILD_VARIANT),$(BUILD_VARIANT),default).install
 
-include $(INCLUDE_DIR)/download.mk
 include $(INCLUDE_DIR)/quilt.mk
 include $(INCLUDE_DIR)/package-defaults.mk
 include $(INCLUDE_DIR)/package-dumpinfo.mk
@@ -144,9 +140,8 @@ define Build/Exports/Default
 endef
 Build/Exports=$(Build/Exports/Default)
 
-define Build/DefaultTargets
+define Build/CoreTargets
   $(if $(QUILT),$(Build/Quilt))
-  $(if $(USE_SOURCE_DIR)$(USE_GIT_TREE),,$(if $(strip $(PKG_SOURCE_URL)),$(call Download,default)))
   $(call Build/Autoclean)
 
   download:
@@ -211,13 +206,18 @@ define Build/DefaultTargets
     compile: $(STAMP_INSTALLED)
   endif
 
-  define Build/DefaultTargets
-  endef
-
   prepare: $(STAMP_PREPARED)
   configure: $(STAMP_CONFIGURED)
   dist: $(STAMP_CONFIGURED)
   distcheck: $(STAMP_CONFIGURED)
+endef
+
+define Build/DefaultTargets
+  $(if $(USE_SOURCE_DIR)$(USE_GIT_TREE),,$(if $(strip $(PKG_SOURCE_URL)),$(call Download,default)))
+  $(if $(DUMP),,$(Build/CoreTargets))
+
+  define Build/DefaultTargets
+  endef
 endef
 
 define Build/IncludeOverlay
@@ -251,14 +251,14 @@ endif
   )
 
   $(if $(DUMP), \
-    $(Dumpinfo/Package), \
+    $(if $(CHECK),,$(Dumpinfo/Package)), \
     $(foreach target, \
       $(if $(Package/$(1)/targets),$(Package/$(1)/targets), \
         $(if $(PKG_TARGETS),$(PKG_TARGETS), ipkg) \
       ), $(BuildTarget/$(target)) \
     ) \
   )
-  $(if $(PKG_HOST_ONLY)$(DUMP),,$(call Build/DefaultTargets,$(1)))
+  $(if $(PKG_HOST_ONLY),,$(call Build/DefaultTargets,$(1)))
 endef
 
 define pkg_install_files
@@ -286,7 +286,7 @@ prepare-package-install:
 
 $(PACKAGE_DIR):
 	mkdir -p $@
-	
+
 dumpinfo:
 download:
 prepare:

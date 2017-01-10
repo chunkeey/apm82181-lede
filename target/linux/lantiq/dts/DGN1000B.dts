@@ -8,14 +8,16 @@
 	model = "DGN1000B - Netgear DGN1000B";
 
 	chosen {
-		aliases {
-			led-boot = &power;
-			led-failsafe = &power;
-			led-running = &power;
+		bootargs = "console=ttyLTQ0,115200";
+	};
 
-			led-dsl = &dsl;
-			led-internet = &online_green;
-		};
+	aliases {
+		led-boot = &power;
+		led-failsafe = &power;
+		led-running = &power;
+
+		led-dsl = &dsl;
+		led-internet = &online_green;
 	};
 
 	memory@0 {
