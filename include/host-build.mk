@@ -24,7 +24,7 @@ include $(INCLUDE_DIR)/unpack.mk
 include $(INCLUDE_DIR)/depends.mk
 
 BUILD_TYPES += host
-HOST_STAMP_PREPARED=$(HOST_BUILD_DIR)/.prepared$(if $(HOST_QUILT)$(DUMP),,$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),)))
+HOST_STAMP_PREPARED=$(HOST_BUILD_DIR)/.prepared$(if $(HOST_QUILT)$(DUMP),,$(shell $(call find_md5,${CURDIR} $(PKG_FILE_DEPENDS),))_$(call confvar,CONFIG_AUTOREMOVE $(HOST_PREPARED_DEPENDS)))
 HOST_STAMP_CONFIGURED:=$(HOST_BUILD_DIR)/.configured
 HOST_STAMP_BUILT:=$(HOST_BUILD_DIR)/.built
 HOST_BUILD_PREFIX:=$(if $(IS_PACKAGE_BUILD),$(STAGING_DIR_HOSTPKG),$(STAGING_DIR_HOST))
@@ -34,6 +34,8 @@ override MAKEFLAGS=
 
 include $(INCLUDE_DIR)/quilt.mk
 include $(INCLUDE_DIR)/autotools.mk
+
+_host_target:=$(if $(HOST_QUILT),,.)
 
 Host/Patch:=$(Host/Patch/Default)
 ifneq ($(strip $(HOST_UNPACK)),)
@@ -67,6 +69,12 @@ HOST_CONFIGURE_ARGS = \
 	--localstatedir=$(HOST_BUILD_PREFIX)/var \
 	--sbindir=$(HOST_BUILD_PREFIX)/bin
 
+HOST_MAKE_VARS = \
+	CFLAGS="$(HOST_CFLAGS)" \
+	CPPFLAGS="$(HOST_CPPFLAGS)" \
+	CXXFLAGS="$(HOST_CXXFLAGS)" \
+	LDFLAGS="$(HOST_LDFLAGS)"
+
 HOST_MAKE_FLAGS =
 
 HOST_CONFIGURE_CMD = $(BASH) ./configure
@@ -89,7 +97,8 @@ define Host/Configure
 endef
 
 define Host/Compile/Default
-	+$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR) \
+	+$(HOST_MAKE_VARS) \
+	$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR) \
 		$(HOST_MAKE_FLAGS) \
 		$(1)
 endef
@@ -99,7 +108,7 @@ define Host/Compile
 endef
 
 define Host/Install/Default
-	$(_SINGLE)$(MAKE) -C $(HOST_BUILD_DIR) install
+	$(call Host/Compile/Default,install)
 endef
 
 define Host/Install
@@ -115,7 +124,7 @@ ifneq ($(if $(HOST_QUILT),,$(CONFIG_AUTOREBUILD)),)
 endif
 
 define Host/Exports/Default
-  $(1) : export ACLOCAL_INCLUDE=$$(foreach p,$$(wildcard $$(STAGING_DIR_HOST)/share/aclocal $$(STAGING_DIR_HOST)/share/aclocal-* $(if $(IS_PACKAGE_BUILD),$$(STAGING_DIR)/host/share/aclocal $$(STAGING_DIR)/host/share/aclocal-*)),-I $$(p))
+  $(1) : export ACLOCAL_INCLUDE=$$(foreach p,$$(wildcard $$(STAGING_DIR_HOST)/share/aclocal $$(STAGING_DIR_HOST)/share/aclocal-* $(if $(IS_PACKAGE_BUILD),$$(STAGING_DIR)/host/share/aclocal $$(STAGING_DIR_HOSTPKG)/share/aclocal $$(STAGING_DIR)/host/share/aclocal-*)),-I $$(p))
   $(1) : export STAGING_PREFIX=$$(HOST_BUILD_PREFIX)
   $(1) : export PKG_CONFIG_PATH=$$(STAGING_DIR_HOST)/lib/pkgconfig:$$(HOST_BUILD_PREFIX)/lib/pkgconfig
   $(1) : export PKG_CONFIG_LIBDIR=$$(HOST_BUILD_PREFIX)/lib/pkgconfig
@@ -161,32 +170,34 @@ ifndef DUMP
 		touch $(HOST_STAMP_BUILT)
 		touch $$@
 
+  $(call DefaultTargets,$(patsubst %,host-%,$(DEFAULT_SUBDIR_TARGETS)))
   ifndef STAMP_BUILT
-    prepare: host-prepare
-    compile: host-compile
-    install: host-install
-    clean: host-clean
-    update: host-update
-    refresh: host-refresh
+    $(foreach t,$(DEFAULT_SUBDIR_TARGETS),
+      $(t): host-$(t)
+      .$(t): .host-$(t)
+    )
+    clean-build: host-clean-build
   endif
 
-  host-prepare: $(HOST_STAMP_PREPARED)
-  host-configure: $(HOST_STAMP_CONFIGURED)
-  host-compile: $(HOST_STAMP_BUILT) $(if $(STAMP_BUILT),$(HOST_STAMP_INSTALLED))
-  host-install: $(HOST_STAMP_INSTALLED)
-  host-clean: FORCE
+  $(_host_target)host-prepare: $(HOST_STAMP_PREPARED)
+  $(_host_target)host-configure: $(HOST_STAMP_CONFIGURED)
+  $(_host_target)host-compile: $(HOST_STAMP_BUILT) $(HOST_STAMP_INSTALLED)
+  host-install: host-compile
+
+  host-clean-build: FORCE
+	rm -rf $(HOST_BUILD_DIR) $(HOST_STAMP_BUILT)
+
+  host-clean: host-clean-build
 	$(call Host/Clean)
 	$(call Host/Uninstall)
-	rm -rf $(HOST_BUILD_DIR) $(HOST_STAMP_INSTALLED) $(HOST_STAMP_BUILT)
+	rm -rf $(HOST_STAMP_INSTALLED)
 
+    ifneq ($(CONFIG_AUTOREMOVE),)
+      host-compile:
+		$(FIND) $(HOST_BUILD_DIR) -mindepth 1 -maxdepth 1 -not '(' -type f -and -name '.*' -and -size 0 ')' | \
+			$(XARGS) rm -rf
+    endif
   endef
-
-  download:
-  prepare:
-  compile:
-  install:
-  clean:
-
 endif
 
 define HostBuild

@@ -53,7 +53,8 @@ get_status_led() {
 	jhr-n825r|\
 	mpr-a1|\
 	mpr-a2|\
-	mzk-ex750np)
+	mzk-ex750np|\
+	wn3000rpv3)
 		status_led="$board:red:power"
 		;;
 	ac1200pro|\
@@ -107,6 +108,7 @@ get_status_led() {
 	w502u)
 		status_led="$board:blue:wps"
 		;;
+	d240|\
 	dap-1350|\
 	na930|\
 	pbr-m1|\
@@ -172,6 +174,10 @@ get_status_led() {
 	newifi-d1)
 		status_led="$board:blue:status"
 		;;
+	omega2| \
+	omega2p)
+		status_led="$board:amber:system"
+		;;
 	oy-0001|\
 	sl-r7205|\
 	zbt-we826)
@@ -206,10 +212,19 @@ get_status_led() {
 	v22rw-2x2)
 		status_led="$board:green:security"
 		;;
+	vocore2)
+		status_led="$board:fuchsia:status"
+		;;
 	w306r-v20|\
 	witi|\
 	zbt-wr8305rt)
 		status_led="$board:green:sys"
+		;;
+	wcr-1166ds|\
+	whr-300hp2|\
+	wsr-1166|\
+	wsr-600)
+		status_led="$board:green:power"
 		;;
 	wcr-150gn|\
 	wl-351)
@@ -224,11 +239,6 @@ get_status_led() {
 		;;
 	wizfi630a)
 		status_led="$board::run"
-		;;
-	whr-300hp2|\
-	wsr-1166|\
-	wsr-600)
-		status_led="$board:green:power"
 		;;
 	wrtnode2r | \
 	wrtnode2p | \

@@ -7,18 +7,6 @@ define Build/tplink-header
 		-o $@.new -k $@ -r $(IMAGE_ROOTFS) && mv $@.new $@
 endef
 
-define Build/pad-kernel-ex2700
-	cp $@ $@.tmp && dd if=/dev/zero bs=64 count=1 >> $@.tmp \
-		&& dd if=$@.tmp of=$@.new bs=64k conv=sync && truncate -s -64 $@.new \
-		&& cat ex2700-fakeroot.uImage >> $@.new && rm $@.tmp && mv $@.new $@
-endef
-
-define Build/netgear-header
-	$(STAGING_DIR_HOST)/bin/mkdniimg \
-		$(1) -v OpenWrt -i $@ \
-		-o $@.new && mv $@.new $@
-endef
-
 define Build/elecom-header
 	cp $@ $(KDIR)/v_0.0.0.bin
 	( \
@@ -64,16 +52,31 @@ endef
 TARGET_DEVICES += ArcherMR200
 
 define Device/ex2700
+  NETGEAR_HW_ID := 29764623+4+0+32+2x2+0
+  NETGEAR_BOARD_ID := EX2700
   DTS := EX2700
   BLOCKSIZE := 4k
   IMAGE_SIZE := $(ralink_default_fw_size_4M)
   IMAGES += factory.bin
-  KERNEL := $(KERNEL_DTB) | uImage lzma | pad-kernel-ex2700
+  KERNEL := $(KERNEL_DTB) | uImage lzma | pad-offset 64k 64 | append-uImage-fakeroot-hdr
   IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
-	netgear-header -B EX2700 -H 29764623+4+0+32+2x2+0
+	netgear-dni
   DEVICE_TITLE := Netgear EX2700
 endef
 TARGET_DEVICES += ex2700
+
+define Device/wn3000rpv3
+  NETGEAR_HW_ID := 29764836+8+0+32+2x2+0
+  NETGEAR_BOARD_ID := WN3000RPv3
+  DTS := WN3000RPV3
+  BLOCKSIZE := 4k
+  IMAGES += factory.bin
+  KERNEL := $(KERNEL_DTB) | uImage lzma | pad-offset 64k 64 | append-uImage-fakeroot-hdr
+  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+	netgear-dni
+  DEVICE_TITLE := Netgear WN3000RPv3
+endef
+TARGET_DEVICES += wn3000rpv3
 
 define Device/wt3020-4M
   DTS := WT3020-4M
@@ -437,7 +440,7 @@ define Device/kn_rc
   DEVICE_TITLE := ZyXEL Keenetic Omni
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
   IMAGES += factory.bin
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | check-size $$$$(IMAGE_SIZE) | \
+  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | pad-to 64k | check-size $$$$(IMAGE_SIZE) | \
 	zyimage -d 4882 -v "ZyXEL Keenetic Omni"
 endef
 TARGET_DEVICES += kn_rc
@@ -447,7 +450,7 @@ define Device/kn_rf
   DEVICE_TITLE := ZyXEL Keenetic Omni II
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
   IMAGES += factory.bin
-  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | check-size $$$$(IMAGE_SIZE) | \
+  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | pad-to 64k | check-size $$$$(IMAGE_SIZE) | \
 	zyimage -d 2102034 -v "ZyXEL Keenetic Omni II"
 endef
 TARGET_DEVICES += kn_rf
@@ -458,7 +461,15 @@ define Device/kng_rc
   DEVICE_TITLE := ZyXEL Keenetic Viva
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport kmod-switch-rtl8366-smi kmod-switch-rtl8367b
   IMAGES += factory.bin
-  IMAGE/factory.bin := $$(sysupgrade_bin) | check-size $$$$(IMAGE_SIZE) | \
+  IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to 64k | check-size $$$$(IMAGE_SIZE) | \
 	zyimage -d 8997 -v "ZyXEL Keenetic Viva"
 endef
 TARGET_DEVICES += kng_rc
+
+define Device/d240
+  DTS := D240
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Sanlinking Technologies D240
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-mt76 kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += d240

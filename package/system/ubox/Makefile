@@ -5,9 +5,9 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(LEDE_GIT)/project/ubox.git
-PKG_SOURCE_DATE:=2016-09-26
-PKG_SOURCE_VERSION:=5649c028c426060616e2bd4e7ea83271cd333d21
-PKG_MIRROR_HASH:=ae77504a4397f92173a7646fa3555e5b51abd7ff1dd1c419770223359e41937a
+PKG_SOURCE_DATE:=2017-01-29
+PKG_SOURCE_VERSION:=ac2d43e7c84fa3041ee2bf5709fdf69352189317
+PKG_MIRROR_HASH:=f793550b6164f519a08ff2d8cb7c5ca74e8d573c03f0d7ee6473db3cbb90ee3a
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -27,21 +27,33 @@ define Package/ubox
   TITLE:=OpenWrt system helper toolbox
 endef
 
+define Package/logd
+SECTION:=base
+  CATEGORY:=Base system
+  DEPENDS:=+libubox +libubus +libblobmsg-json +USE_GLIBC:librt
+  TITLE:=OpenWrt system log implementation
+endef
+
 define Package/ubox/install
-	$(INSTALL_DIR) $(1)/sbin $(1)/usr/sbin $(1)/lib $(1)/usr/bin $(1)/etc/init.d
+	$(INSTALL_DIR) $(1)/sbin $(1)/usr/sbin $(1)/lib $(1)/usr/bin
 
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/{kmodloader,validate_data} $(1)/sbin/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/getrandom $(1)/usr/bin/
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libvalidate.so $(1)/lib
 
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/rmmod
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/insmod
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/lsmod
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/modinfo
-	$(LN) ../../sbin/kmodloader $(1)/usr/sbin/modprobe
+	$(LN) kmodloader $(1)/sbin/rmmod
+	$(LN) kmodloader $(1)/sbin/insmod
+	$(LN) kmodloader $(1)/sbin/lsmod
+	$(LN) kmodloader $(1)/sbin/modinfo
+	$(LN) kmodloader $(1)/sbin/modprobe
+endef
+
+define Package/logd/install
+	$(INSTALL_DIR) $(1)/sbin $(1)/etc/init.d/
 
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/{logd,logread} $(1)/sbin/
 	$(INSTALL_BIN) ./files/log.init $(1)/etc/init.d/log
 endef
 
 $(eval $(call BuildPackage,ubox))
+$(eval $(call BuildPackage,logd))

@@ -2,7 +2,6 @@ define Device/ap90q
   DEVICE_TITLE := YunCore AP90Q
   BOARDNAME = AP90Q
   IMAGE_SIZE = 16000k
-  CONSOLE = ttyS0,115200
   MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
 endef
 TARGET_DEVICES += ap90q
@@ -31,7 +30,6 @@ define Device/cf-e316n-v2
   DEVICE_TITLE := COMFAST CF-E316N v2
   BOARDNAME = CF-E316N-V2
   IMAGE_SIZE = 16192k
-  CONSOLE = ttyS0,115200
   MTDPARTS = spi0.0:64k(u-boot)ro,64k(art)ro,16192k(firmware),64k(art-backup)ro
 endef
 TARGET_DEVICES += cf-e316n-v2
@@ -49,7 +47,6 @@ define Device/cf-e380ac-v1
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME = CF-E380AC-V1
   IMAGE_SIZE = 16128k
-  CONSOLE = ttyS0,115200
   MTDPARTS = spi0.0:128k(u-boot)ro,64k(art)ro,16128k(firmware),64k(art-backup)ro
 endef
 TARGET_DEVICES += cf-e380ac-v1
@@ -68,7 +65,6 @@ define Device/cf-e520n
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
   BOARDNAME = CF-E520N
   IMAGE_SIZE = 8000k
-  CONSOLE = ttyS0,115200
   MTDPARTS = spi0.0:64k(u-boot)ro,64k(art)ro,8000k(firmware),64k(art-backup)ro
 endef
 TARGET_DEVICES += cf-e520n
@@ -93,7 +89,6 @@ define Device/cpe870
   DEVICE_PACKAGES := rssileds
   BOARDNAME = CPE870
   IMAGE_SIZE = 7936k
-  CONSOLE = ttyS0,115200
   MTDPARTS = spi0.0:64k(u-boot)ro,64k(u-boot-env),7936k(firmware),64k(config)ro,64k(art)ro
 endef
 TARGET_DEVICES += cpe870
@@ -133,7 +128,6 @@ define Device/gl-ar300
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2
   BOARDNAME = GL-AR300
   IMAGE_SIZE = 16000k
-  CONSOLE = ttyS0,115200
   MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,16000k(firmware),64k(art)ro
 endef
 TARGET_DEVICES += gl-ar300
@@ -143,7 +137,6 @@ define Device/gl-ar300m
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 uboot-envtools
   BOARDNAME = GL-AR300M
   IMAGE_SIZE = 16000k
-  CONSOLE = ttyS0,115200
   MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
 endef
 TARGET_DEVICES += gl-ar300m
@@ -323,6 +316,17 @@ endef
 
 TARGET_DEVICES += cr5000-nocloud
 
+define Device/pqi-air-pen
+  DEVICE_TITLE := PQI Air Pen
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage
+  BOARDNAME = PQI-AIR-PEN
+  IMAGE_SIZE = 7744k
+  CONSOLE = ttyATH0,115200
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,64k(art)ro,64k(NVRAM)ro,7680k(firmware),64k(CONF)
+endef
+
+TARGET_DEVICES += pqi-air-pen
+
 define Device/antminer-s1
   $(Device/tplink-8mlzma)
   DEVICE_TITLE := Antminer-S1
@@ -416,7 +420,7 @@ TARGET_DEVICES += rnx-n360rt
 
 define Device/mc-mac1200r
   $(Device/tplink-8mlzma)
-  DEVICE_TITLE := MERCURY MAC1200R
+  DEVICE_TITLE := Mercury MAC1200R
   DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME := MC-MAC1200R
   DEVICE_PROFILE := MAC1200R
@@ -464,6 +468,33 @@ define Device/onion-omega
 endef
 TARGET_DEVICES += onion-omega
 
+define Device/sc1750
+  DEVICE_TITLE := Abicom SC1750
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME = SC1750
+  IMAGE_SIZE = 15744k
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),15744k(firmware),128k(APConfig),128k(kplog),64k(ART)
+endef
+TARGET_DEVICES += sc1750
+
+define Device/sc300m
+  DEVICE_TITLE := Abicom SC300M
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME = SC300M
+  IMAGE_SIZE = 15744k
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),15744k(firmware),128k(APConfig),128k(kplog),64k(ART)
+endef
+TARGET_DEVICES += sc300m
+
+define Device/sc450
+  DEVICE_TITLE := Abicom SC450
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME = SC450
+  IMAGE_SIZE = 15744k
+  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),15744k(firmware),128k(APConfig),128k(kplog),64k(ART)
+endef
+TARGET_DEVICES += sc450
+
 define Device/smart-300
   $(Device/tplink-8mlzma)
   DEVICE_TITLE := NC-LINK SMART-300
@@ -489,7 +520,6 @@ define Device/sr3200
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME = SR3200
   IMAGE_SIZE = 16000k
-  CONSOLE = ttyS0,115200
   MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env),16000k(firmware),64k(art)ro
 endef
 TARGET_DEVICES += sr3200
@@ -607,7 +637,6 @@ define Build/seama-seal
 endef
 
 define Device/seama
-  CONSOLE := ttyS0,115200
   LOADER_TYPE := bin
   BLOCKSIZE := 64k
   KERNEL := kernel-bin | patch-cmdline | relocate-kernel | lzma
@@ -722,6 +751,6 @@ define Device/bhr-4grv2
   MTDPARTS := spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14528k(rootfs),1472k(kernel),64k(art)ro,16000k@0x50000(firmware)
   IMAGES := sysupgrade.bin factory.bin
   IMAGE/sysupgrade.bin = append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | append-kernel | check-size $$$$(IMAGE_SIZE)
-  IMAGE/factory.bin = append-kernel | pad-to $$$$(KERNEL_SIZE) | append-rootfs | mkbuffaloimg
+  IMAGE/factory.bin = append-kernel | pad-to $$$$(KERNEL_SIZE) | append-rootfs | pad-rootfs | mkbuffaloimg
 endef
 TARGET_DEVICES += bhr-4grv2

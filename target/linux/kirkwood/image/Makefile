@@ -11,7 +11,7 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
 KERNEL_LOADADDR:=0x8000
-TARGET_DEVICES = linksys-audi linksys-viper dockstar goflexnet goflexhome iconnect pogo_e02 ib62x0
+TARGET_DEVICES = linksys-audi linksys-viper dockstar goflexnet goflexhome iconnect pogo_e02 ib62x0 nsa310b
 
 UBI_OPTS := -m 2048 -p 128KiB -s 512
 UBIFS_OPTS := -m 2048 -e 126KiB -c 4096
@@ -28,7 +28,6 @@ define Device/Default
   SUBPAGESIZE := 512
   BLOCKSIZE := 128k
   IMAGES := sysupgrade.tar
-  UBINIZE_OPTS := -E 5
   IMAGE/sysupgrade.tar := sysupgrade-tar
 endef
 
@@ -60,6 +59,7 @@ define Device/linksys-audi
   KERNEL_SIZE := 2624k
   FILESYSTEMS := squashfs
   IMAGES += factory.bin
+  UBINIZE_OPTS := -E 5
   IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi
 endef
 
@@ -70,6 +70,7 @@ define Device/linksys-viper
   KERNEL_SIZE := 2688k
   FILESYSTEMS := squashfs
   IMAGES += factory.bin
+  UBINIZE_OPTS := -E 5
   IMAGE/factory.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi
 endef
 
@@ -77,6 +78,13 @@ define Device/iconnect
 $(Device/dockstar)
   DEVICE_TITLE := Iomega Iconnect
   DEVICE_DTS := kirkwood-iconnect
+endef
+
+define Device/nsa310b
+$(Device/dockstar)
+  DEVICE_TITLE := ZyXEL NSA310b
+  DEVICE_DTS := kirkwood-nsa310b
+  DEVICE_PACKAGES := kmod-r8169 kmod-gpio-button-hotplug kmod-hwmon-lm85
 endef
 
 define Device/pogo_e02

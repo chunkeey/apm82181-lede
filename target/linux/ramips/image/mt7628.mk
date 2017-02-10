@@ -19,6 +19,15 @@ define Device/miwifi-nano
 endef
 TARGET_DEVICES += miwifi-nano
 
+define Device/vocore2
+  DTS := VOCORE2
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := VoCore VoCore2
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport \
+    kmod-sdhci kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += vocore2
+
 define Device/wl-wn575a3
   DTS := WL-WN575A3
   IMAGE_SIZE := $(ralink_default_fw_size_8M)
@@ -46,3 +55,19 @@ define Device/mac1200r-v2
   DEVICE_TITLE := Mercury MAC1200R v2.0
 endef
 TARGET_DEVICES += mac1200r-v2
+
+define Device/wcr-1166ds
+  DTS := WCR-1166DS
+  BUFFALO_TAG_PLATFORM := MTK
+  BUFFALO_TAG_VERSION := 9.99
+  BUFFALO_TAG_MINOR := 9.99
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := trx | pad-rootfs | append-metadata
+  IMAGE/factory.bin := \
+	trx -M 0x746f435c | pad-rootfs | append-metadata | \
+	buffalo-enc WCR-1166DS $$(BUFFALO_TAG_VERSION) -l | \
+	buffalo-tag-dhp WCR-1166DS JP JP | buffalo-enc-tag -l | \
+	buffalo-dhp-image
+  DEVICE_TITLE := Buffalo WCR-1166DS
+endef
+TARGET_DEVICES += wcr-1166ds

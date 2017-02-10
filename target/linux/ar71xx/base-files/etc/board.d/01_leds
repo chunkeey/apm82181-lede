@@ -41,6 +41,19 @@ antrouter-r1)
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan" "phy0tpt"
 	ucidef_set_led_default "btc" "BTC" "$board:green:btc" "0"
 	;;
+archer-c59-v1|\
+archer-c60-v1)
+	ucidef_set_led_switch "lan" "LAN" "$board:green:lan" "switch0" "0x3C"
+	ucidef_set_led_switch "wan" "WAN" "$board:green:wan" "switch0" "0x02"
+	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan2g" "phy1tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "$board:green:wlan5g" "phy0tpt"
+
+	case "$board" in
+	archer-c59-v1)
+		ucidef_set_led_usbdev "usb" "USB" "$board:green:usb" "1-1"
+		;;
+	esac
+	;;
 arduino-yun)
 	ucidef_set_led_wlan "wlan" "WLAN" "arduino:blue:wlan" "phy0tpt"
 	ucidef_set_led_usbdev "usb" "USB" "arduino:white:usb" "1-1.1"
@@ -201,6 +214,9 @@ rb-750)
 	ucidef_set_led_switch "port4" "port4" "rb750:green:port4" "switch0" "0x04"
 	ucidef_set_led_switch "port5" "port5" "rb750:green:port5" "switch0" "0x02"
 	;;
+rb-941-2nd)
+	ucidef_set_led_timer "act" "act" "rb:green:act" "1000" "1000"
+	;;
 rb-2011l|\
 rb-2011uas|\
 rb-2011uias|\
@@ -279,6 +295,7 @@ gl-mifi)
 	esac
 	;;
 gl-domino|\
+sc300m|\
 wrt160nl)
 	ucidef_set_led_wlan "wlan" "WLAN" "$board:blue:wlan" "phy0tpt"
 	;;
@@ -427,6 +444,10 @@ omy-x1)
 	ucidef_set_led_default "power" "POWER" "omy:green:power" "1"
 	ucidef_set_led_default "wan" "WAN" "omy:green:wan" "eth0"
 	;;
+pqi-air-pen)
+	ucidef_set_led_wlan "wlan" "WLAN" "pqi-air-pen:blue:wlan" "phy0tpt"
+	ucidef_set_led_default "wps" "WPS" "pqi-air-pen:blue:wps" "0"
+	;;
 qihoo-c301)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "qihoo:red:status" "phy1tpt"
 	;;
@@ -435,6 +456,10 @@ re450)
 	ucidef_set_led_netdev "lan_link" "LAN Link" "$board:green:lan_link" "eth0" "link"
 	ucidef_set_led_wlan "wlan2g" "WLAN 2.4 GHz" "$board:blue:wlan2g" "phy1tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN 5 GHz" "$board:blue:wlan5g" "phy0tpt"
+	;;
+sc1750|\
+sc450)
+	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan" "phy0tpt"
 	;;
 smart-300)
 	ucidef_set_led_netdev "wan" "WAN" "nc-link:green:wan" "eth0"

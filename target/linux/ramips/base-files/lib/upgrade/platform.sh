@@ -35,6 +35,7 @@ platform_check_image() {
 	cf-wr800n|\
 	cs-qr10|\
 	d105|\
+	d240|\
 	dap-1350|\
 	db-wrt01|\
 	dcs-930|\
@@ -102,6 +103,8 @@ platform_check_image() {
 	newifi-d1|\
 	nixcore|\
 	nw718|\
+	omega2|\
+	omega2p|\
 	oy-0001|\
 	pbr-d1|\
 	pbr-m1|\
@@ -133,6 +136,7 @@ platform_check_image() {
 	ur-336un|\
 	v22rw-2x2|\
 	vocore|\
+	vocore2|\
 	vr500|\
 	w150m|\
 	w2914nsv2|\
@@ -154,6 +158,7 @@ platform_check_image() {
 	wli-tx4-ag300n|\
 	wlr-6000|\
 	wmr-300|\
+	wn3000rpv3|\
 	wnce2001|\
 	wndr3700v5|\
 	wr512-3gn|\
@@ -222,16 +227,17 @@ platform_check_image() {
 		}
 		return 0
 		;;
+	ubnt-erx)
+		nand_do_platform_check "$board" "$1"
+		return $?;
+		;;
+	wcr-1166ds|\
 	wsr-1166)
 		[ "$magic" != "48445230" ] && {
 			echo "Invalid image type."
 			return 1
 		}
 		return 0
-		;;
-	ubnt-erx)
-		nand_do_platform_check "$board" "$1"
-		return $?;
 		;;
 	esac
 

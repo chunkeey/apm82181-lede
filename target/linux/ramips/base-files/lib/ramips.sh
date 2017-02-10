@@ -112,6 +112,9 @@ ramips_board_detect() {
 	*"D105")
 		name="d105"
 		;;
+	*"D240")
+		name="d240"
+		;;
 	*"DAP-1350")
 		name="dap-1350"
 		;;
@@ -364,6 +367,12 @@ ramips_board_detect() {
 	*"NW718")
 		name="nw718"
 		;;
+	*"Onion Omega2")
+		name="omega2"
+		;;
+	*"Onion Omega2+")
+		name="omega2p"
+		;;
 	*"OY-0001")
 		name="oy-0001"
 		;;
@@ -475,6 +484,9 @@ ramips_board_detect() {
 	*"VoCore (16M)")
 		name="vocore-16M"
 		;;
+	*"VoCore2")
+		name="vocore2"
+		;;
 	*"VR500")
 		name="vr500"
 		;;
@@ -489,6 +501,9 @@ ramips_board_detect() {
 		;;
 	*"W502U")
 		name="w502u"
+		;;
+	*"WCR-1166DS")
+		name="wcr-1166ds"
 		;;
 	*"WCR-150GN")
 		name="wcr-150gn"
@@ -543,6 +558,9 @@ ramips_board_detect() {
 		;;
 	*"WMR-300")
 		name="wmr-300"
+		;;
+	*"WN3000RPv3")
+		name="wn3000rpv3"
 		;;
 	*"WNCE2001")
 		name="wnce2001"

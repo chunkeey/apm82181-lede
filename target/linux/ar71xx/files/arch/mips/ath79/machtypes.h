@@ -38,6 +38,8 @@ enum ath79_mach_type {
 	ATH79_MACH_AP90Q,			/* YunCore AP90Q */
 	ATH79_MACH_AP96,			/* Atheros AP96 */
 	ATH79_MACH_ARCHER_C5,			/* TP-LINK Archer C5 board */
+	ATH79_MACH_ARCHER_C59_V1,		/* TP-LINK Archer C59 V1 board */
+	ATH79_MACH_ARCHER_C60_V1,		/* TP-LINK Archer C60 V1 board */
 	ATH79_MACH_ARCHER_C7,			/* TP-LINK Archer C7 board */
 	ATH79_MACH_ARCHER_C7_V2,		/* TP-LINK Archer C7 V2 board */
 	ATH79_MACH_ARDUINO_YUN,			/* Yun */
@@ -141,6 +143,7 @@ enum ath79_mach_type {
 	ATH79_MACH_ONION_OMEGA,			/* ONION OMEGA */
 	ATH79_MACH_PB42,			/* Atheros PB42 */
 	ATH79_MACH_PB44,			/* Atheros PB44 reference board */
+	ATH79_MACH_PQI_AIR_PEN,			/* PQI Air Pen */
 	ATH79_MACH_QIHOO_C301,			/* Qihoo 360 C301 */
 	ATH79_MACH_R6100,			/* NETGEAR R6100 */
 	ATH79_MACH_RB_2011G,			/* Mikrotik RouterBOARD 2011UAS-2HnD */
@@ -162,12 +165,16 @@ enum ath79_mach_type {
 	ATH79_MACH_RB_751,			/* MikroTik RouterBOARD 751 */
 	ATH79_MACH_RB_751G,			/* Mikrotik RouterBOARD 751G */
 	ATH79_MACH_RB_922GS,			/* Mikrotik RouterBOARD 911/922GS boards */
+	ATH79_MACH_RB_941,			/* MikroTik RouterBOARD 941-2nD */
 	ATH79_MACH_RB_951G,			/* Mikrotik RouterBOARD 951G */
 	ATH79_MACH_RB_951U,			/* Mikrotik RouterBOARD 951Ui-2HnD */
 	ATH79_MACH_RB_SXTLITE2ND,		/* Mikrotik RouterBOARD SXT Lite 2nD */
 	ATH79_MACH_RB_SXTLITE5ND,		/* Mikrotik RouterBOARD SXT Lite 5nD */
 	ATH79_MACH_RE450,			/* TP-LINK RE450 */
 	ATH79_MACH_RW2458N,			/* Redwave RW2458N */
+	ATH79_MACH_SC1750,			/* Abicom SC1750 */
+	ATH79_MACH_SC300M,			/* Abicom SC300M */
+	ATH79_MACH_SC450,			/* Abicom SC450 */
 	ATH79_MACH_SMART_300,			/* NC-LINK SMART-300 */
 	ATH79_MACH_SOM9331,			/* OpenEmbed SOM9331 */
 	ATH79_MACH_SR3200,			/* YunCore SR3200 */

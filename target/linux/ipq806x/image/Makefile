@@ -9,12 +9,6 @@ KERNEL_LOADADDR := 0x42208000
 
 define Image/Prepare
 	$(CP) $(LINUX_DIR)/vmlinux $(KDIR)/$(IMG_PREFIX)-vmlinux.elf
-	mkimage -A arm -O linux -T filesystem -C none \
-		-a $(KERNEL_LOADADDR) -e $(KERNEL_LOADADDR) \
-		-n 'ARM OpenWrt fakeroot' \
-		-s $(KDIR_TMP)/root.dummy-uImage.tmp
-	echo -ne '\xff' > $(KDIR_TMP)/root.dummy
-	cat $(KDIR_TMP)/root.dummy $(KDIR_TMP)/root.dummy-uImage.tmp > $(KDIR)/root.dummy
 endef
 
 define Image/BuildKernel
@@ -29,10 +23,6 @@ endef
 define Image/Build
 	$(call Image/Build/$(1),$(1))
 	dd if=$(KDIR)/root.$(1) of=$(BIN_DIR)/$(IMG_PREFIX)-$(1)-root.img bs=2k conv=sync
-endef
-
-define Build/append-file
-	cat $(1) >> $@
 endef
 
 define Device/Default
@@ -68,7 +58,8 @@ define Device/DniImage
 	FILESYSTEMS := squashfs
 	KERNEL_SUFFIX := -uImage
 	KERNEL_INITRAMFS := kernel-bin | append-dtb | uImage none
-	KERNEL = kernel-bin | append-dtb | pad-to $$$$(($$(KERNEL_SIZE)-2*64-1)) | uImage none | append-file $(KDIR)/root.dummy
+	KERNEL = kernel-bin | append-dtb | uImage none | pad-offset $$(KERNEL_SIZE) 64 | \
+		append-uImage-fakeroot-hdr
 	KERNEL_NAME := zImage
 	NETGEAR_BOARD_ID :=
 	NETGEAR_HW_ID :=
@@ -165,7 +156,7 @@ define Device/EA8500
 	BLOCKSIZE := 128k
 	KERNEL_SIZE := 3072k
 	FILESYSTEMS := squashfs
-	KERNEL = kernel-bin | append-dtb | uImage none | append-file $(KDIR)/root.dummy
+	KERNEL = kernel-bin | append-dtb | uImage none | append-uImage-fakeroot-hdr
 	PROFILES += $$(DEVICE_NAME)
 	BOARD_NAME := ea8500
 	UBINIZE_OPTS := -E 5

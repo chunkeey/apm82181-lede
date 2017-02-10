@@ -106,10 +106,8 @@ ifeq ($(DUMP),)
     ifdef do_install
       ifneq ($(CONFIG_PACKAGE_$(1))$(DEVELOPER),)
         IPKGS += $(1)
-        compile: $$(IPKG_$(1)) $(PKG_INFO_DIR)/$(1).provides $(STAGING_DIR_ROOT)/stamp/.$(1)_installed
-        ifneq ($(ABI_VERSION),)
-        compile: $(PKG_INFO_DIR)/$(1).version
-        endif
+        $(_pkg_target)compile: $$(IPKG_$(1)) $(PKG_INFO_DIR)/$(1).provides $(PKG_BUILD_DIR)/.pkgdir/$(1).installed
+        compile: $(STAGING_DIR_ROOT)/stamp/.$(1)_installed
       else
         $(if $(CONFIG_PACKAGE_$(1)),$$(info WARNING: skipping $(1) -- package not selected))
       endif
@@ -140,19 +138,19 @@ ifeq ($(DUMP),)
     $(eval $(call BuildIPKGVariable,$(1),prerm,-pkg,1))
     $(eval $(call BuildIPKGVariable,$(1),postrm,,1))
 
-    $(STAGING_DIR_ROOT)/stamp/.$(1)_installed : export PATH=$$(TARGET_PATH_PKG)
-    $(STAGING_DIR_ROOT)/stamp/.$(1)_installed: $(STAMP_BUILT)
-	rm -rf $(STAGING_DIR_ROOT)/tmp-$(1)
-	mkdir -p $(STAGING_DIR_ROOT)/stamp $(STAGING_DIR_ROOT)/tmp-$(1)
-	$(call Package/$(1)/install,$(STAGING_DIR_ROOT)/tmp-$(1))
-	$(call Package/$(1)/install_lib,$(STAGING_DIR_ROOT)/tmp-$(1))
-	$(call locked,$(CP) $(STAGING_DIR_ROOT)/tmp-$(1)/. $(STAGING_DIR_ROOT)/,root-copy)
-	rm -rf $(STAGING_DIR_ROOT)/tmp-$(1)
+    $(PKG_BUILD_DIR)/.pkgdir/$(1).installed : export PATH=$$(TARGET_PATH_PKG)
+    $(PKG_BUILD_DIR)/.pkgdir/$(1).installed: $(STAMP_BUILT)
+	rm -rf $$@ $(PKG_BUILD_DIR)/.pkgdir/$(1)
+	mkdir -p $(PKG_BUILD_DIR)/.pkgdir/$(1)
+	$(call Package/$(1)/install,$(PKG_BUILD_DIR)/.pkgdir/$(1))
+	$(call Package/$(1)/install_lib,$(PKG_BUILD_DIR)/.pkgdir/$(1))
 	touch $$@
 
-    $(PKG_INFO_DIR)/$(1).version: $$(IPKG_$(1))
-	echo '$(ABI_VERSION)' | cmp -s - $$@ || \
-		echo '$(ABI_VERSION)' > $$@
+    $(STAGING_DIR_ROOT)/stamp/.$(1)_installed: $(PKG_BUILD_DIR)/.pkgdir/$(1).installed
+	mkdir -p $(STAGING_DIR_ROOT)/stamp
+	$(if $(ABI_VERSION),echo '$(ABI_VERSION)' | cmp -s - $(PKG_INFO_DIR)/$(1).version || echo '$(ABI_VERSION)' > $(PKG_INFO_DIR)/$(1).version)
+	$(call locked,$(CP) $(PKG_BUILD_DIR)/.pkgdir/$(1)/. $(STAGING_DIR_ROOT)/,root-copy)
+	touch $$@
 
     Package/$(1)/DEPENDS := $$(call mergelist,$$(filter-out @%,$$(IDEPEND_$(1))))
     ifneq ($$(EXTRA_DEPENDS),)
@@ -177,11 +175,10 @@ $$(call addfield,Depends,$$(Package/$(1)/DEPENDS)
 Installed-Size: 0
 $(_endef)
 
-    $(PKG_INFO_DIR)/$(1).provides: $$(IPKG_$(1))
     $$(IPKG_$(1)) : export CONTROL=$$(Package/$(1)/CONTROL)
     $$(IPKG_$(1)) : export DESCRIPTION=$$(Package/$(1)/description)
     $$(IPKG_$(1)) : export PATH=$$(TARGET_PATH_PKG)
-    $$(IPKG_$(1)): $(STAMP_BUILT) $(INCLUDE_DIR)/package-ipkg.mk
+    $(PKG_INFO_DIR)/$(1).provides $$(IPKG_$(1)): $(STAMP_BUILT) $(INCLUDE_DIR)/package-ipkg.mk
 	@rm -rf $$(IDIR_$(1)) $$(call opkg_package_files,$(1))
 	mkdir -p $(PACKAGE_DIR) $$(IDIR_$(1))/CONTROL $(PKG_INFO_DIR)
 	$(call Package/$(1)/install,$$(IDIR_$(1)))
@@ -209,11 +206,13 @@ $(_endef)
 		( \
 			echo "#!/bin/sh"; \
 			echo "[ \"\$$$${IPKG_NO_SCRIPT}\" = \"1\" ] && exit 0"; \
+			echo "[ -x "\$$$${IPKG_INSTROOT}/lib/functions.sh" ] || exit 0"; \
 			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
 			echo "default_postinst \$$$$0 \$$$$@"; \
 		) > postinst; \
 		( \
 			echo "#!/bin/sh"; \
+			echo "[ -x "\$$$${IPKG_INSTROOT}/lib/functions.sh" ] || exit 0"; \
 			echo ". \$$$${IPKG_INSTROOT}/lib/functions.sh"; \
 			echo "default_prerm \$$$$0 \$$$$@"; \
 		) > prerm; \

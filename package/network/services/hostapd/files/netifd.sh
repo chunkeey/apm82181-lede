@@ -40,8 +40,8 @@ hostapd_append_wpa_key_mgmt() {
 	local auth_type="$(echo $auth_type | tr 'a-z' 'A-Z')"
 
 	append wpa_key_mgmt "WPA-$auth_type"
-	[ "$ieee80211r" -gt 0 ] && append wpa_key_mgmt "FT-${auth_type}"
-	[ "$ieee80211w" -gt 0 ] && append wpa_key_mgmt "WPA-${auth_type}-SHA256"
+	[ "${ieee80211r:-0}" -gt 0 ] && append wpa_key_mgmt "FT-${auth_type}"
+	[ "${ieee80211w:-0}" -gt 0 ] && append wpa_key_mgmt "WPA-${auth_type}-SHA256"
 }
 
 hostapd_add_log_config() {
@@ -161,6 +161,7 @@ hostapd_common_add_bss_config() {
 	config_add_string wpa_psk_file
 
 	config_add_boolean wps_pushbutton wps_label ext_registrar wps_pbc_in_m1
+	config_add_int wps_ap_setup_locked wps_independent
 	config_add_string wps_device_type wps_device_name wps_manufacturer wps_pin
 
 	config_add_boolean ieee80211r pmk_r1_push
@@ -194,8 +195,8 @@ hostapd_set_bss_options() {
 	json_get_vars \
 		wep_rekey wpa_group_rekey wpa_pair_rekey wpa_master_rekey \
 		maxassoc max_inactivity disassoc_low_ack isolate auth_cache \
-		wps_pushbutton wps_label ext_registrar wps_pbc_in_m1 \
-		wps_device_type wps_device_name wps_manufacturer wps_pin \
+		wps_pushbutton wps_label ext_registrar wps_pbc_in_m1 wps_ap_setup_locked \
+		wps_independent wps_device_type wps_device_name wps_manufacturer wps_pin \
 		macfilter ssid wmm uapsd hidden short_preamble rsn_preauth \
 		iapp_interface eapol_version acct_server acct_secret acct_port \
 		dynamic_vlan ieee80211w
@@ -354,6 +355,7 @@ hostapd_set_bss_options() {
 		set_default wps_device_type "6-0050F204-1"
 		set_default wps_device_name "Lede AP"
 		set_default wps_manufacturer "www.lede-project.org"
+		set_default wps_independent 1
 
 		wps_state=2
 		[ -n "$wps_configured" ] && wps_state=1
@@ -363,11 +365,12 @@ hostapd_set_bss_options() {
 		append bss_conf "eap_server=1" "$N"
 		[ -n "$wps_pin" ] && append bss_conf "ap_pin=$wps_pin" "$N"
 		append bss_conf "wps_state=$wps_state" "$N"
-		append bss_conf "ap_setup_locked=0" "$N"
 		append bss_conf "device_type=$wps_device_type" "$N"
 		append bss_conf "device_name=$wps_device_name" "$N"
 		append bss_conf "manufacturer=$wps_manufacturer" "$N"
 		append bss_conf "config_methods=$config_methods" "$N"
+		append bss_conf "wps_independent=$wps_independent" "$N"
+		[ -n "$wps_ap_setup_locked" ] && append bss_conf "ap_setup_locked=$wps_ap_setup_locked" "$N"
 		[ "$wps_pbc_in_m1" -gt 0 ] && append bss_conf "pbc_in_m1=$wps_pbc_in_m1" "$N"
 	}
 
@@ -643,7 +646,10 @@ wpa_supplicant_add_network() {
 		psk)
 			local passphrase
 
-			hostapd_append_wpa_key_mgmt
+			if [ "$_w_mode" != "mesh" ]; then
+				hostapd_append_wpa_key_mgmt
+			fi
+
 			key_mgmt="$wpa_key_mgmt"
 
 			if [ ${#key} -eq 64 ]; then

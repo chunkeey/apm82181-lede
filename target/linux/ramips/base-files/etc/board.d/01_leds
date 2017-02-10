@@ -109,6 +109,10 @@ d105)
 	ucidef_set_led_default "power" "POWER" "$board:red:power" "1"
 	set_usb_led "$board:green:usb"
 	;;
+d240)
+	set_wifi_led "$board:blue:wifi"
+	set_usb_led "$board:blue:usb"
+	;;
 db-wrt01)
 	ucidef_set_led_default "power" "power" "$board:orange:power" "1"
 	;;
@@ -155,7 +159,8 @@ vr500)
 dir-860l-b1)
 	ucidef_set_led_netdev "wan" "wan" "$board:green:net" "eth0.2"
 	;;
-ex2700)
+ex2700|\
+wn3000rpv3)
 	ucidef_set_led_default "power_r" "POWER (red)" "$board:red:power" "0"
 	set_wifi_led "$board:green:router"
 	;;
@@ -310,6 +315,9 @@ tiny-ac)
 vocore)
 	ucidef_set_led_netdev "eth" "ETH" "$board:orange:eth" "eth0"
 	set_wifi_led "$board:green:status"
+	;;
+vocore2)
+	set_wifi_led "$board:fuchsia:status"
 	;;
 w502u)
 	set_usb_led "$board:blue:usb"

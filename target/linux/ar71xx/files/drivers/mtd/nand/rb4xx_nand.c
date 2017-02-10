@@ -65,7 +65,7 @@ static struct mtd_partition rb4xx_nand_partitions[] = {
 		.size	= (4 * 1024 * 1024) - (256 * 1024),
 	},
 	{
-		.name	= "rootfs",
+		.name	= "ubi",
 		.offset	= MTDPART_OFS_NXTBLK,
 		.size	= MTDPART_SIZ_FULL,
 	},
@@ -218,6 +218,7 @@ static int rb4xx_nand_probe(struct platform_device *pdev)
 
 	info->chip.chip_delay	= 25;
 	info->chip.ecc.mode	= NAND_ECC_SOFT;
+	info->chip.options = NAND_NO_SUBPAGE_WRITE;
 
 	platform_set_drvdata(pdev, info);
 

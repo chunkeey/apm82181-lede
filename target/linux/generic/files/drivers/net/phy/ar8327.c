@@ -619,11 +619,11 @@ ar8327_hw_init(struct ar8xxx_priv *priv)
 	if (!priv->chip_data)
 		return -ENOMEM;
 
-	if (priv->phy->dev.of_node)
-		ret = ar8327_hw_config_of(priv, priv->phy->dev.of_node);
+	if (priv->phy->mdio.dev.of_node)
+		ret = ar8327_hw_config_of(priv, priv->phy->mdio.dev.of_node);
 	else
 		ret = ar8327_hw_config_pdata(priv,
-					     priv->phy->dev.platform_data);
+					     priv->phy->mdio.dev.platform_data);
 
 	if (ret)
 		return ret;
@@ -1028,6 +1028,7 @@ ar8327_sw_get_eee(struct switch_dev *dev,
 	return 0;
 }
 
+#if 0
 static void
 ar8327_wait_atu_ready(struct ar8xxx_priv *priv, u16 r2, u16 r1)
 {
@@ -1099,6 +1100,7 @@ static void ar8327_get_arl_entry(struct ar8xxx_priv *priv,
 		break;
 	}
 }
+#endif
 
 static int
 ar8327_sw_hw_apply(struct switch_dev *dev)
@@ -1399,7 +1401,9 @@ const struct ar8xxx_chip ar8327_chip = {
 	.vtu_load_vlan = ar8327_vtu_load_vlan,
 	.phy_fixup = ar8327_phy_fixup,
 	.set_mirror_regs = ar8327_set_mirror_regs,
+#if 0
 	.get_arl_entry = ar8327_get_arl_entry,
+#endif
 	.sw_hw_apply = ar8327_sw_hw_apply,
 
 	.num_mibs = ARRAY_SIZE(ar8236_mibs),
@@ -1434,7 +1438,9 @@ const struct ar8xxx_chip ar8337_chip = {
 	.vtu_load_vlan = ar8327_vtu_load_vlan,
 	.phy_fixup = ar8327_phy_fixup,
 	.set_mirror_regs = ar8327_set_mirror_regs,
+#if 0
 	.get_arl_entry = ar8327_get_arl_entry,
+#endif
 	.sw_hw_apply = ar8327_sw_hw_apply,
 
 	.num_mibs = ARRAY_SIZE(ar8236_mibs),

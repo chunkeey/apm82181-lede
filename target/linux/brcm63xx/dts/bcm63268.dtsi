@@ -73,7 +73,14 @@
 			#gpio-cells = <2>;
 
 			ngpios = <20>;
+<<<<<<< HEAD
 			big-endian;
+=======
+
+			interrupt-parent = <&periph_intc>;
+			interrupts = <0 0>, <1 0>, <2 0>, <3 0>;
+			interrupt-names = "gpio0", "gpio1", "gpio2", "gpio3";
+>>>>>>> staging
 		};
 
 		gpio0: gpio-controller@100000c4 {
