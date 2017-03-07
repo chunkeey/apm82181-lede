@@ -616,6 +616,11 @@ define Device/avm_fritz3370
   BOARD_NAME := FRITZ3370
   DEVICE_DTS := FRITZ3370
   DEVICE_TITLE := Fritz!Box WLan - FRITZ3370
+  KERNEL_SIZE := 4096k
+  UBINIZE_OPTS := -E 5
+  IMAGES += eva-kernel.bin eva-filesystem.bin
+  IMAGE/eva-kernel.bin := append-kernel
+  IMAGE/eva-filesystem.bin := append-ubi
   DEVICE_PACKAGES := kmod-ath9k wpad-mini kmod-usb-dwc2 fritz-tffs
   SUPPORTED_DEVICES += FRITZ3370
 endef
