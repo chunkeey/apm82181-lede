@@ -3,6 +3,7 @@
 #include "danube.dtsi"
 
 / {
+	compatible = "intel,easy50712", "lantiq,xway", "lantiq,danube";
 	model = "EASY50712 - Intel EASY50712 Nand";
 
 	chosen {
