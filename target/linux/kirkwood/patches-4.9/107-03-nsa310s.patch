@@ -17,7 +17,7 @@
 +
 +/ {
 +	model = "ZyXEL NSA310S";
-+	compatible = "zyxel,nsa320s", "marvell,kirkwood-88f6702", "marvell,kirkwood";
++	compatible = "zyxel,nsa310s", "zyxel,nsa310", "marvell,kirkwood-88f6702", "marvell,kirkwood";
 +
 +	memory {
 +		device_type = "memory";
