@@ -1,0 +1,39 @@
+--- a/drivers/net/phy/at803x.c	2017-05-19 21:50:51.300576025 +0200
++++ b/drivers/net/phy/at803x.c	2017-06-03 15:03:52.592164764 +0200
+@@ -17,6 +17,7 @@
+ #include <linux/string.h>
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
++#include <linux/of_device.h>
+ #include <linux/of_gpio.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/platform_data/phy-at803x.h>
+@@ -272,6 +273,28 @@ static int at803x_probe(struct phy_devic
+ 	if (!priv)
+ 		return -ENOMEM;
+ 
++#ifdef CONFIG_OF
++	if (phydev->mdio.dev.of_node) {
++		struct device_node *np = phydev->mdio.dev.of_node;
++		struct at803x_platform_data *pdata;
++
++		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata)
++			return -ENOMEM;
++
++		if (of_property_read_bool(np, "disable-smarteee"))
++			pdata->disable_smarteee = 1;
++		if (of_property_read_bool(np, "enable-rgmii-tx-delay"))
++			pdata->enable_rgmii_tx_delay = 1;
++		if (of_property_read_bool(np, "enable-rgmii-rx-delay"))
++			pdata->enable_rgmii_rx_delay = 1;
++		if (of_property_read_bool(np, "fixup-rgmii-tx-delay"))
++			pdata->fixup_rgmii_tx_delay = 1;
++
++		phydev->mdio.dev.platform_data = pdata;
++	}
++#endif
++
+ 	if (phydev->drv->phy_id != ATH8030_PHY_ID &&
+ 	    phydev->drv->phy_id != ATH8032_PHY_ID)
+ 		goto does_not_require_reset_workaround;

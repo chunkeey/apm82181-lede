@@ -85,6 +85,20 @@
 
 &EMAC0 {
 	status = "okay";
+
+	phy-map = <0x2>;
+	phy-address = <0x1>;
+	phy-handle = <&phy>;
+
+	mdio {
+		phy: phy@1 {
+			compatible = "ethernet-phy-id004d.d072",
+				     "ethernet-phy-ieee802.3-c22";
+			reg = <1>;
+			enable-rgmii-tx-delay;
+			enable-rgmii-rx-delay;
+		};
+	};
 };
 
 &POB0 {
