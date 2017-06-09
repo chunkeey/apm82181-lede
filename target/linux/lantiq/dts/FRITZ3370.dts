@@ -9,7 +9,7 @@
 	model = "Fritz!Box WLAN 3370";
 
 	chosen {
-		bootargs = "console=ttyLTQ0,115200 ubi.mtd=1,512 root=/dev/mtdblock9";
+		bootargs = "console=ttyLTQ0,115200";
 	};
 
 	aliases {
@@ -19,7 +19,6 @@
 
 		led-dsl = &dsl;
 		led-internet = &info_green;
-		led-wifi = &wifi;
 	};
 
 	memory@0 {
@@ -46,16 +45,16 @@
 					};
 
 					partition@400000 {
-						label = "rootfs_ubi";
+						label = "ubi";
 						reg = <0x400000 0x3000000>;
 					};
 
 					partition@3400000 {
-						label = "vr9_firmware";
+						label = "reserved-kernel";
 						reg = <0x3400000 0x400000>;
 					};
 					partition@3800000 {
-						label = "reserved";
+						label = "reserved-filesystem";
 						reg = <0x3800000 0x3000000>;
 					};
 					partition@6800000 {
@@ -92,7 +91,7 @@
 					lantiq,output = <1>;
 				};
 				pcie-rst {
-					lantiq,pins = "io38";
+					lantiq,pins = "io21";
 					lantiq,pull = <0>;
 					lantiq,output = <1>;
 				};
@@ -121,7 +120,8 @@
 
 	gphy-xrx200 {
 		compatible = "lantiq,phy-xrx200";
-		firmware = "lantiq/vr9_phy11g_a1x.bin";
+		firmware1 = "lantiq/vr9_phy11g_a1x.bin";	/*VR9 1.1*/
+		firmware2 = "lantiq/vr9_phy11g_a2x.bin";	/*VR9 1.2*/
 		phys = [ 00 01 ];
 	};
 
@@ -135,11 +135,11 @@
 			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
 			linux,code = <KEY_POWER>;
 		};
-/*		wifi {
-			label = "wifi";
+		wifi {
+			label = "wlan";
 			gpios = <&gpio 29 GPIO_ACTIVE_HIGH>;
-			linux,code = <BTN_1>;
-		};*/
+			linux,code = <KEY_WLAN>;
+		};
 	};
 
 	gpio-leds {
@@ -158,10 +158,20 @@
 			label = "fritz3370:red:info";
 			gpios = <&gpio 34 GPIO_ACTIVE_LOW>;
 		};
+		/*
+		 * HWRev 1 uses GPIO#39 for the wireless LED
+		 * HWRev 2 uses GPIO#35 for the wireless LED and GPIO#39 for
+		 * IFX_GPIO_MODULE_EXTPHY_MDIO
+		 *
+		 * Keep the LED disabled till we have a clean way to
+		 * distinguish the hardware revisions.
+		 */
+		/*
 		wifi: wifi {
 			label = "fritz3370:green:wlan";
 			gpios = <&gpio 35 GPIO_ACTIVE_LOW>;
 		};
+		*/
 		dsl: dsl {
 			label = "fritz3370:green:dsl";
 			gpios = <&gpio 36 GPIO_ACTIVE_LOW>;
@@ -216,8 +226,6 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 		reg = <0>;
-		mtd-mac-address = <&urlader 0x987>;
-		mtd-mac-address-increment = <(-2)>;
 		lantiq,switch;
 
 		ethernet@0 {
@@ -272,6 +280,8 @@
 };
 
 &pcie0 {
+	gpio-reset = <&gpio 21 GPIO_ACTIVE_HIGH>;
+
 	pcie@0 {
 		reg = <0 0 0 0 0>;
 		#interrupt-cells = <1>;
@@ -282,6 +292,8 @@
 		wifi@0,0 {
 			compatible = "pci0,0";
 			reg = <0 0 0 0 0>;
+			#gpio-cells = <2>;
+			gpio-controller;
 			qca,no-eeprom; /* load from ath9k-eeprom-pci-0000:01:00.0.bin */
 		};
 	};

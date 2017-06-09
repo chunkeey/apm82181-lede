@@ -616,7 +616,7 @@ define Device/avm_fritz3370
   BOARD_NAME := FRITZ3370
   DEVICE_DTS := FRITZ3370
   DEVICE_TITLE := Fritz!Box WLan - FRITZ3370
-  DEVICE_PACKAGES := kmod-ath9k wpad-mini kmod-usb-dwc2
+  DEVICE_PACKAGES := kmod-ath9k wpad-mini kmod-usb-dwc2 fritz-tffs
   SUPPORTED_DEVICES += FRITZ3370
 endef
 TARGET_DEVICES += avm_fritz3370
