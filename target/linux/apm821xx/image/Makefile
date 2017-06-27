@@ -15,6 +15,7 @@ define Device/Default
   KERNEL_ENTRY := 0x00000000
   KERNEL_LOADADDR := 0x00000000
   DEVICE_DTS_DIR := ../dts
+  SUPPORTED_DEVICES = $$(DEVICE_PROFILE)
 endef
 
 define Build/dtb
@@ -61,7 +62,7 @@ endef
 
 define Build/MerakiNAND
 	-$(STAGING_DIR_HOST)/bin/mkmerakifw \
-		-B $(DEVICE_PROFILE) -s \
+		-B $(DEVICE_DTS) -s \
 		-i $@ \
 		-o $@.new
 	@cp $@.new $@
@@ -70,7 +71,7 @@ endef
 define Device/mr24
   DEVICE_TITLE := Cisco Meraki MR24
   DEVICE_PACKAGES := kmod-spi-gpio
-  DEVICE_PROFILE := MR24
+  DEVICE_PROFILE := mr24
   DEVICE_DTS := MR24
   BLOCKSIZE := 63k
   IMAGES := sysupgrade.tar
@@ -82,7 +83,7 @@ define Device/mr24
 		      check-size $$(KERNEL_SIZE) | \
 		      MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | \
 		      MerakiNAND
-  IMAGE/sysupgrade.tar := sysupgrade-tar
+  IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   UBINIZE_OPTS := -E 5
 endef
 TARGET_DEVICES += mr24
@@ -91,7 +92,7 @@ define Device/mx60
   DEVICE_TITLE := Cisco Meraki MX60/MX60W
   DEVICE_PACKAGES := kmod-spi-gpio kmod-usb-ledtrig-usbport kmod-usb-dwc2 \
   kmod-usb-storage block-mount
-  DEVICE_PROFILE := MX60
+  DEVICE_PROFILE := mx60
   DEVICE_DTS := MX60
   BLOCKSIZE := 63k
   IMAGES := sysupgrade.tar
@@ -107,7 +108,7 @@ define Device/mx60
 		      check-size $$(KERNEL_SIZE) | \
 		      MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | \
 		      MerakiNAND
-  IMAGE/sysupgrade.tar := sysupgrade-tar
+  IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   UBINIZE_OPTS := -E 5
 endef
 TARGET_DEVICES += mx60
@@ -172,7 +173,7 @@ define Device/WNDR4700
   KERNEL_INITRAMFS := kernel-bin | gzip | dtb | wndr4700-specialImage gzip
   IMAGE/factory.img := create-uImage-dtb | append-kernel | pad-to 2M | append-ubi | \
 		       netgear-dni | check-size $$$$(IMAGE_SIZE)
-  IMAGE/sysupgrade.tar := sysupgrade-tar
+  IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   IMAGE/kernel.dtb := export-dtb | uImage none
   NETGEAR_BOARD_ID := WNDR4700
   NETGEAR_HW_ID := 29763875+128+256
@@ -219,6 +220,7 @@ define Device/MyBookLiveDefault
   BOOT_SIZE := 8
   IMAGES := rootfs.img kernel.dtb
   DEVICE_DTB := apollo3g.dtb
+  DEVICE_PROFILE := mbl
   FILESYSTEMS := ext4
   IMAGE/kernel.dtb := export-dtb
   IMAGE/rootfs.img := boot-script | boot-img | hdd-img
@@ -228,7 +230,6 @@ define Device/MyBookLiveSingle
 $(Device/MyBookLiveDefault)
   DEVICE_TITLE := Western Digital My Book Live
   DEVICE_DTS := apollo3g
-  DEVICE_PROFILE := apollo3g
 endef
 
 TARGET_DEVICES += MyBookLiveSingle
@@ -238,7 +239,6 @@ $(Device/MyBookLiveDefault)
   DEVICE_TITLE := Western Digital My Book Live Duo
   DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport kmod-usb-storage kmod-fs-vfat wpad-mini
   DEVICE_DTS := apollo3g-duo
-  DEVICE_PROFILE := ap2nc
 endef
 
 TARGET_DEVICES += MyBookLiveDuo
