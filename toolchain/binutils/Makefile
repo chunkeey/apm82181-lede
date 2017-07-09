@@ -17,20 +17,22 @@ ifeq ($(PKG_VERSION),2.27)
   PKG_HASH:=369737ce51587f92466041a97ab7d2358c6d9e1b6490b3940eb09fb0a9a6ac88
 endif
 
-ifneq ($(CONFIG_BINUTILS_VERSION_2_26_ARC),)
-  PKG_SOURCE_URL:=https://github.com/foss-for-synopsys-dwc-arc-processors/binutils-gdb/archive/arc-2016.03/
-  PKG_REV:=2016.03
-  PKG_SOURCE:=$(PKG_NAME)-arc-$(PKG_REV).tar.gz
-  PKG_HASH:=6583a0cd5c7251dc895a47c797a9b011e466c23377d2ca7548a707fdb918fba1
-  BINUTILS_DIR:=$(PKG_NAME)-gdb-arc-$(PKG_REV)
+ifeq ($(PKG_VERSION),2.28)
+  PKG_HASH:=6297433ee120b11b4b0a1c8f3512d7d73501753142ab9e2daa13c5a3edd32a72
+endif
+
+ifneq ($(CONFIG_BINUTILS_VERSION_2_27_ARC),)
+  PKG_REV:=arc-2016.09-release
+  PKG_SOURCE_URL:=https://github.com/foss-for-synopsys-dwc-arc-processors/binutils-gdb/archive/$(PKG_REV)/
+  PKG_SOURCE:=$(PKG_NAME)-$(PKG_REV).tar.gz
+  PKG_HASH:=c6de8aedb7568406d784295476de9139a5e351e970e18b602e0037439b3a7b4b
+  BINUTILS_DIR:=$(PKG_NAME)-gdb-$(PKG_REV)
   HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(BINUTILS_DIR)
 endif
 
 HOST_BUILD_PARALLEL:=1
 
 PATCH_DIR:=./patches/$(PKG_VERSION)
-
-REAL_STAGING_DIR_HOST:=$(STAGING_DIR_HOST)
 
 include $(INCLUDE_DIR)/toolchain-build.mk
 
@@ -92,7 +94,7 @@ define Host/Install
 		install
 	$(call FixupLibdir,$(TOOLCHAIN_DIR)/initial)
 	$(RM) $(TOOLCHAIN_DIR)/initial/lib/libiberty.a
-	$(CP) $(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-readelf $(REAL_STAGING_DIR_HOST)/bin/readelf
+	$(CP) $(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-readelf $(HOST_BUILD_PREFIX)/bin/readelf
 	# ARC gcc requires extlib.
 	# If extlib is not available in "initial" folder
 	# initial gcc will fail to build libc.

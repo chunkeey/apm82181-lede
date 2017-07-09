@@ -273,7 +273,7 @@ config BUSYBOX_DEFAULT_FEATURE_VERBOSE_CP_MESSAGE
 	default n
 config BUSYBOX_DEFAULT_FEATURE_USE_SENDFILE
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_FEATURE_COPYBUF_KB
 	int
 	default 4
@@ -2220,7 +2220,7 @@ config BUSYBOX_DEFAULT_FEATURE_IP_RULE
 	default y
 config BUSYBOX_DEFAULT_FEATURE_IP_NEIGH
 	bool
-	default n
+	default y
 config BUSYBOX_DEFAULT_FEATURE_IP_RARE_PROTOCOLS
 	bool
 	default n
@@ -2270,6 +2270,9 @@ config BUSYBOX_DEFAULT_FEATURE_NETSTAT_PRG
 	bool
 	default y
 config BUSYBOX_DEFAULT_NSLOOKUP
+	bool
+	default n
+config BUSYBOX_DEFAULT_NSLOOKUP_LEDE
 	bool
 	default y
 config BUSYBOX_DEFAULT_NTPD

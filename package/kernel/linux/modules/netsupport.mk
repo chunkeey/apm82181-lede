@@ -924,8 +924,8 @@ define KernelPackage/rxrpc
 	CONFIG_AF_RXRPC_DEBUG=n
   FILES:= \
 	$(LINUX_DIR)/net/rxrpc/af-rxrpc.ko \
-	$(LINUX_DIR)/net/rxrpc/rxkad.ko
-  AUTOLOAD:=$(call AutoLoad,30,rxkad af-rxrpc)
+	$(LINUX_DIR)/net/rxrpc/rxkad.ko@lt4.7
+  AUTOLOAD:=$(call AutoLoad,30,rxkad@lt4.7 af-rxrpc)
   DEPENDS:= +kmod-crypto-manager +kmod-crypto-pcbc +kmod-crypto-fcrypt
 endef
 
@@ -993,3 +993,19 @@ define KernelPackage/nlmon/description
 endef
 
 $(eval $(call KernelPackage,nlmon))
+
+
+define KernelPackage/mdio
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=MDIO (clause 45) PHY support
+  KCONFIG:=CONFIG_MDIO
+  HIDDEN:=1
+  FILES:=$(LINUX_DIR)/drivers/net/mdio.ko
+  AUTOLOAD:=$(call AutoLoad,32,mdio)
+endef
+
+define KernelPackage/mdio/description
+ Kernel modules for MDIO (clause 45) PHY support
+endef
+
+$(eval $(call KernelPackage,mdio))

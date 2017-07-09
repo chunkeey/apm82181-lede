@@ -208,15 +208,20 @@ ifeq ($(DUMP),1)
     CPU_CFLAGS_ultrasparc = -mcpu=ultrasparc
   endif
   ifeq ($(ARCH),aarch64)
-    CPU_TYPE ?= armv8-a
-    CPU_CFLAGS_armv8-a = -mcpu=armv8-a
+    CPU_TYPE ?= generic
+    CPU_CFLAGS_generic = -mcpu=generic
     CPU_CFLAGS_cortex-a53 = -mcpu=cortex-a53
   endif
   ifeq ($(ARCH),arc)
     CPU_TYPE ?= arc700
     CPU_CFLAGS += -matomic
-    CPU_CFLAGS_arc700 = -marc700
-    CPU_CFLAGS_archs = -marchs
+    CPU_CFLAGS_arc700 = -mcpu=arc700
+    CPU_CFLAGS_archs = -mcpu=archs
+  endif
+  ifneq ($(CPU_TYPE),)
+    ifndef CPU_CFLAGS_$(CPU_TYPE)
+      $(warning CPU_TYPE "$(CPU_TYPE)" doesn't correspond to a known type)
+    endif
   endif
   DEFAULT_CFLAGS=$(strip $(CPU_CFLAGS) $(CPU_CFLAGS_$(CPU_TYPE)) $(CPU_CFLAGS_$(CPU_SUBTYPE)))
 
@@ -258,7 +263,9 @@ ifeq ($(DUMP),1)
       FEATURES += virtio
     endif
     ifneq ($(CONFIG_CPU_MIPS32_R2),)
-      FEATURES += mips16
+      ifneq ($(CPU_SUBTYPE),nomips16)
+        FEATURES += mips16
+      endif
     endif
     FEATURES += $(foreach v,6 7,$(if $(CONFIG_CPU_V$(v)),arm_v$(v)))
 

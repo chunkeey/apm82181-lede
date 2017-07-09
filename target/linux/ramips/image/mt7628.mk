@@ -2,6 +2,8 @@
 # MT7628 Profiles
 #
 
+DEVICE_VARS += TPLINK_BOARD_ID
+
 define Device/mt7628
   DTS := MT7628
   BLOCKSIZE := 64k
@@ -11,6 +13,13 @@ define Device/mt7628
 endef
 TARGET_DEVICES += mt7628
 
+define Device/hc5661a
+  DTS := HC5661A
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := HiWiFi HC5661A
+endef
+TARGET_DEVICES += hc5661a
+
 define Device/miwifi-nano
   DTS := MIWIFI-NANO
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
@@ -19,12 +28,42 @@ define Device/miwifi-nano
 endef
 TARGET_DEVICES += miwifi-nano
 
+define Device/tl-wr840n-v4
+  DTS := TL-WR840NV4
+  IMAGE_SIZE := 7808k
+  DEVICE_TITLE := TP-Link TL-WR840N v4
+  TPLINK_BOARD_ID := TL-WR840NV4
+  KERNEL := $(KERNEL_DTB)
+  IMAGES += tftp-recovery.bin
+  IMAGE/factory.bin := tplink-v2-image
+  IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+  IMAGE/sysupgrade.bin := tplink-v2-image -s | append-metadata | \
+	check-size $$$$(IMAGE_SIZE)
+endef
+TARGET_DEVICES += tl-wr840n-v4
+
+define Device/tl-wr841n-v13
+  $(Device/tl-wr840n-v4)
+  DTS := TL-WR841NV13
+  DEVICE_TITLE := TP-Link TL-WR841N v13
+  TPLINK_BOARD_ID := TL-WR841NV13
+endef
+TARGET_DEVICES += tl-wr841n-v13
+
+define Device/gl-mt300n-v2
+  DTS := GL-MT300N-V2
+  IMAGE_SIZE := 16064k
+  DEVICE_TITLE := GL-iNet GL-MT300N-V2
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci
+endef
+TARGET_DEVICES += gl-mt300n-v2
+
 define Device/vocore2
   DTS := VOCORE2
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := VoCore VoCore2
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport \
-    kmod-sdhci kmod-sdhci-mt7620
+    kmod-sdhci-mt7620
 endef
 TARGET_DEVICES += vocore2
 

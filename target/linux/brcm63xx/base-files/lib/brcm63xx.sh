@@ -21,6 +21,9 @@ brcm63xx_dt_detect() {
 	"ADB P.DG AV4202N")
 		board_name="av4202n"
 		;;
+	"Actiontec R1000H")
+		board_name="r1000h"
+		;;
 	"Alcatel RG100A")
 		board_name="rg100a"
 		;;
@@ -240,7 +243,7 @@ brcm63xx_dt_detect() {
 	"TECOM GW6200")
 		board_name="g6200"
 		;;
-	"Telsey CVPA502+")
+	"Telsey CPVA502+")
 		board_name="cpva502p"
 		;;
 	"Telsey CPVA642-type (CPA-ZNTE60T)")

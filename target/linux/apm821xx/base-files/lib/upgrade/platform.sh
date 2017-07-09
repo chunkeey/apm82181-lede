@@ -4,6 +4,7 @@
 
 PART_NAME=firmware
 RAMFS_COPY_DATA=/lib/apm821xx.sh
+REQUIRE_IMAGE_METADATA=1
 
 platform_check_image() {
 	local board=$(apm821xx_board_name)

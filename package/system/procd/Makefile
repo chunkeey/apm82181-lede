@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=procd
-PKG_RELEASE:=1
+PKG_RELEASE:=3
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(LEDE_GIT)/project/procd.git
-PKG_SOURCE_DATE:=2017-02-08
-PKG_SOURCE_VERSION:=cdc3dab3cd5d0295f638de3088bc4f5c9669e7c2
-PKG_MIRROR_HASH:=97d57f0f117a3a5b353a904d4ad7091a008d3c93672652c771ac38dd78bb0530
+PKG_SOURCE_DATE:=2017-06-22
+PKG_SOURCE_VERSION:=e5e99c463e0ef3e4ad7ba8cea4125183073fabb1
+PKG_MIRROR_HASH:=4f5ed256aabc6e66411419c339bcfb86e37e8951d17470640b053f393c1dab49
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -22,11 +22,9 @@ PKG_LICENSE_FILES:=
 
 PKG_MAINTAINER:=John Crispin <john@phrozen.org>
 
-PKG_FLAGS:=nonshared
-
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_TARGET_INIT_PATH CONFIG_KERNEL_SECCOMP \
-	CONFIG_NAND_SUPPORT CONFIG_PROCD_SHOW_BOOT CONFIG_PROCD_ZRAM_TMPFS \
+	CONFIG_PROCD_SHOW_BOOT CONFIG_PROCD_ZRAM_TMPFS \
 	CONFIG_KERNEL_NAMESPACES CONFIG_PACKAGE_procd-ujail CONFIG_PACKAGE_procd-seccomp
 
 include $(INCLUDE_DIR)/package.mk
@@ -42,7 +40,7 @@ TARGET_LDFLAGS += $(if $(CONFIG_USE_GLIBC),-lrt)
 define Package/procd
   SECTION:=base
   CATEGORY:=Base system
-  DEPENDS:=+ubusd +ubus +libjson-script +ubox +USE_GLIBC:librt +libubox +libubus +NAND_SUPPORT:procd-nand
+  DEPENDS:=+ubusd +ubus +libjson-script +ubox +USE_GLIBC:librt +libubox +libubus
   TITLE:=OpenWrt system process manager
 endef
 
@@ -58,20 +56,6 @@ define Package/procd-seccomp
   CATEGORY:=Base system
   DEPENDS:=@arm||@armeb||@mips||@mipsel||@i386||@x86_64 @!TARGET_uml @KERNEL_SECCOMP +libubox +libblobmsg-json
   TITLE:=OpenWrt process seccomp helper + utrace
-endef
-
-define Package/procd-nand
-  SECTION:=utils
-  CATEGORY:=Utilities
-  DEPENDS:=@NAND_SUPPORT +ubi-utils
-  TITLE:=OpenWrt sysupgrade nand helper
-endef
-
-define Package/procd-nand-firstboot
-  SECTION:=utils
-  CATEGORY:=Utilities
-  DEPENDS:=procd-nand
-  TITLE:=OpenWrt firstboot nand helper
 endef
 
 define Package/procd/config
@@ -90,10 +74,6 @@ config PROCD_ZRAM_TMPFS
 endmenu
 endef
 
-
-ifeq ($(CONFIG_NAND_SUPPORT),y)
-  CMAKE_OPTIONS += -DBUILD_UPGRADED=1
-endif
 
 ifeq ($(CONFIG_PROCD_SHOW_BOOT),y)
   CMAKE_OPTIONS += -DSHOW_BOOT_ON_CONSOLE=1
@@ -114,7 +94,7 @@ endif
 define Package/procd/install
 	$(INSTALL_DIR) $(1)/sbin $(1)/etc $(1)/lib/functions
 
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/{init,procd,askfirst,udevtrigger} $(1)/sbin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/{init,procd,askfirst,udevtrigger,upgraded} $(1)/sbin/
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libsetlbf.so $(1)/lib
 	$(INSTALL_BIN) ./files/reload_config $(1)/sbin/
 	$(INSTALL_DATA) ./files/hotplug*.json $(1)/etc/
@@ -133,21 +113,6 @@ define Package/procd-seccomp/install
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libpreload-trace.so $(1)/lib
 endef
 
-define Package/procd-nand/install
-	$(INSTALL_DIR) $(1)/sbin $(1)/lib/upgrade
-
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/upgraded $(1)/sbin/
-	$(INSTALL_DATA) ./files/nand.sh $(1)/lib/upgrade/
-endef
-
-define Package/procd-nand-firstboot/install
-	$(INSTALL_DIR) $(1)/lib/preinit
-
-	$(INSTALL_DATA) ./files/nand-preinit.sh $(1)/lib/preinit/60-nand-firstboot.sh
-endef
-
 $(eval $(call BuildPackage,procd))
 $(eval $(call BuildPackage,procd-ujail))
 $(eval $(call BuildPackage,procd-seccomp))
-$(eval $(call BuildPackage,procd-nand))
-$(eval $(call BuildPackage,procd-nand-firstboot))

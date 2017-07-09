@@ -7,10 +7,10 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_VERSION:=2016.09.01
+PKG_VERSION:=2017.03
 PKG_RELEASE:=1
 
-PKG_HASH:=95728e89dd476d17428f94080752ab48884be477b6a678941582aeef618b70bb
+PKG_HASH:=f54baf3f9325bf444c7905f3a5b6f83680edb1e6e1a4d5f8a5ad80abe885113f
 
 include $(INCLUDE_DIR)/u-boot.mk
 include $(INCLUDE_DIR)/package.mk
@@ -52,6 +52,10 @@ define U-Boot/nsa310
   NAME:=Zyxel NSA310
 endef
 
+define U-Boot/nsa325
+  NAME:=Zyxel NSA325v1 and v2
+endef
+
 define U-Boot/pogo_e02
   NAME:=Cloud Engines Pogoplug E02
 endef
@@ -70,6 +74,7 @@ UBOOT_TARGETS := \
 	ib62x0 ib62x0_second_stage \
 	iconnect iconnect_second_stage \
 	nsa310 \
+	nsa325 \
 	pogo_e02 pogo_e02_second_stage \
 	sheevaplug
 

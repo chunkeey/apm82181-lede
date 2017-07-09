@@ -15,11 +15,11 @@
  
 --- a/drivers/net/phy/phy_device.c
 +++ b/drivers/net/phy/phy_device.c
-@@ -1247,6 +1247,9 @@ int genphy_update_link(struct phy_device
+@@ -1267,6 +1267,9 @@ int genphy_update_link(struct phy_device
  {
  	int status;
  
-+	if (phydev->drv->update_link)
++	if (phydev->drv && phydev->drv->update_link)
 +		return phydev->drv->update_link(phydev);
 +
  	/* Do a fake read */
