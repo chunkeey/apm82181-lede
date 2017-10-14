@@ -100,6 +100,7 @@ get_status_led() {
 	ip2202)
 		status_led="$boardname:green:run"
 		;;
+	alfa-network,ac1200rm|\
 	awapn2403|\
 	dir-645|\
 	sk-wb8|\

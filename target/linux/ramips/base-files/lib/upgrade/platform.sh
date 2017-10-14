@@ -226,7 +226,13 @@ platform_check_image() {
 		}
 		return 0
 		;;
-
+	alfa-network,ac1200rm|\
+	hc5962|\
+	mir3g|\
+	r6220)
+		# these boards use metadata images
+		return 0
+		;;
 	ar670w)
 		[ "$magic" != "6d000080" ] && {
 			echo "Invalid image type."
@@ -256,12 +262,6 @@ platform_check_image() {
 			echo "Invalid image type."
 			return 1
 		}
-		return 0
-		;;
-	hc5962|\
-	mir3g|\
-	r6220)
-		# these boards use metadata images
 		return 0
 		;;
 	re350-v1)

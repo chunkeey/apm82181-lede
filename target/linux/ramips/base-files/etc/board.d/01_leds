@@ -48,6 +48,10 @@ a5-v11|\
 cs-qr10)
 	ucidef_set_led_default "power" "POWER" "$boardname:red:power" "1"
 	;;
+alfa-network,ac1200rm)
+	set_wifi_led "$boardname:green:wlan2g" "wlan1"
+	ucidef_set_led_default "wps" "wps" "$boardname:green:wps" "0"
+	;;
 ai-br100)
 	ucidef_set_led_netdev "wan" "wan" "$boardname:blue:wan" "eth0.2"
 	set_wifi_led "$boardname:blue:wlan"

@@ -70,6 +70,7 @@ ramips_setup_interfaces()
 		ucidef_set_interface_lan "eth0.2"
 		;;
 	3g-6200n|\
+	alfa-network,ac1200rm|\
 	ai-br100|\
 	d240|\
 	db-wrt01|\
