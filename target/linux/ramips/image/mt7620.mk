@@ -36,7 +36,7 @@ define Device/Archer
   IMAGE/sysupgrade.bin := tplink-v2-image -s -e | append-metadata
 endef
 
-define Device/ArcherC20
+define Device/tplink_archer-c20
   $(Device/Archer)
   DTS := ArcherC20
   SUPPORTED_DEVICES := tplink,c20
@@ -48,7 +48,7 @@ define Device/ArcherC20
   DEVICE_TITLE := TP-Link ArcherC20
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
 endef
-TARGET_DEVICES += ArcherC20
+TARGET_DEVICES += tplink_archer-c20
 
 define Device/ArcherC20i
   $(Device/Archer)
@@ -197,13 +197,13 @@ define Device/gl-mt300a
 endef
 TARGET_DEVICES += gl-mt300a
 
-define Device/u25awf-h1
+define Device/kimax_u25awf-h1
   DTS := U25AWF-H1
   IMAGE_SIZE := 16064k
   DEVICE_TITLE := Kimax U25AWF-H1
-  SUPPORTED_DEVICES := kimax,u25awf-h1
+  SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
 endef
-TARGET_DEVICES += u25awf-h1
+TARGET_DEVICES += kimax_u25awf-h1
 
 define Device/gl-mt300n
   DTS := GL-MT300N
