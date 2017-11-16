@@ -99,7 +99,7 @@ define Device/tl-wr840n-v4
 	check-size $$$$(IMAGE_SIZE)
 endef
 
-define Device/tl-wr840n-v5
+define Device/tplink_tl-wr840n-v5
   DTS := TL-WR840NV5
   IMAGE_SIZE := 3840k
   DEVICE_TITLE := TP-Link TL-WR840N v5
@@ -112,7 +112,7 @@ define Device/tl-wr840n-v5
   KERNEL_INITRAMFS := $(KERNEL_DTB) | tplink-v2-header -e
   IMAGE/sysupgrade.bin := tplink-v2-image -s -e | append-metadata | \
 	check-size $$$$(IMAGE_SIZE)
-  SUPPORTED_DEVICES := tplink,tl-wr840n-v5
+  SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
 endef
 
 define Device/tl-wr841n-v13
@@ -123,16 +123,16 @@ define Device/tl-wr841n-v13
   TPLINK_HWREV := 0x268
   TPLINK_HWREVADD := 0x13
 endef
-TARGET_DEVICES += tl-wr840n-v4 tl-wr840n-v5 tl-wr841n-v13
+TARGET_DEVICES += tl-wr840n-v4 tplink_tl-wr840n-v5 tl-wr841n-v13
 
-define Device/u7628-01-128M-16M
+define Device/unielec_u7628-01-128m-16m
   DTS := U7628-01-128M-16M
   IMAGE_SIZE := 16064k
   DEVICE_TITLE := UniElec U7628-01 (128M RAM/16M flash)
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
-  SUPPORTED_DEVICES := unielec,u7628-01-128m-16m
+  SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
 endef
-TARGET_DEVICES += u7628-01-128M-16M
+TARGET_DEVICES += unielec_u7628-01-128m-16m
 
 define Device/vocore2
   DTS := VOCORE2
