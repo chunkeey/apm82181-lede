@@ -8,10 +8,10 @@ get_status_led() {
 	local boardname="${board##*,}"
 
 	case $board in
-	mbl|\
-	mr24|\
-	mx60|\
-	netgear,wndr4700)
+	meraki,buckminster|\
+	meraki,ikarem|\
+	netgear,wndr4700|\
+	wd,mybooklive)
 		status_led="$boardname:green:power"
 		;;
 

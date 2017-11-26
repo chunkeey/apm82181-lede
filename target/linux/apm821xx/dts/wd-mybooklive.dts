@@ -7,10 +7,13 @@
  * any warranty of any kind, whether express or implied.
  */
 
+/dts-v1/;
+
 #include "apm82181.dtsi"
 
 / {
-	compatible = "amcc,apollo3g";
+	model = "MyBook Live Series";
+	compatible = "wd,mybooklive", "amcc,apollo3g";
 
 	aliases {
 		serial0 = &UART0;
@@ -82,7 +85,6 @@
 			line-name = "Power USB Core";
 			gpios = <2 GPIO_ACTIVE_LOW>;
 			output-low;
-			status = "disabled";
 		};
 
 		enable-port1 {
@@ -97,7 +99,6 @@
 			line-name = "Power Drive Port 0";
 			gpios = <7 GPIO_ACTIVE_LOW>;
 			output-low;
-			status = "disabled";
 		};
 	};
 
@@ -169,6 +170,12 @@
 	status = "okay";
 };
 
-&SATA1 {
+&SATA0 {
 	status = "okay";
 };
+
+&USBOTG0 {
+	status = "okay";
+	dr_mode = "host";
+};
+
