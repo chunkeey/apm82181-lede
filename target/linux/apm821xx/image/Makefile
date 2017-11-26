@@ -5,16 +5,16 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
-DEVICE_VARS += DEVICE_PROFILE IMAGE_SIZE DTB_SIZE
+DEVICE_VARS += IMAGE_SIZE DTB_SIZE
 
 define Device/Default
   PROFILES := Default
   KERNEL_DEPENDS = $$(wildcard ../dts/$$(DEVICE_DTS).dts)
-  DEVICE_PROFILE :=
   DEVICE_DTS :=
   KERNEL_ENTRY := 0x00000000
   KERNEL_LOADADDR := 0x00000000
   DEVICE_DTS_DIR := ../dts
+  SUPPORTED_DEVICES = $$(BOARD_NAME)
 endef
 
 define Build/dtb
@@ -61,7 +61,7 @@ endef
 
 define Build/MerakiNAND
 	-$(STAGING_DIR_HOST)/bin/mkmerakifw \
-		-B $(DEVICE_PROFILE) -s \
+		-B $(BOARD_NAME) -s \
 		-i $@ \
 		-o $@.new
 	@cp $@.new $@
@@ -82,7 +82,7 @@ define Device/mr24
 		      check-size $$(KERNEL_SIZE) | \
 		      MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | \
 		      MerakiNAND
-  IMAGE/sysupgrade.tar := sysupgrade-tar
+  IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   UBINIZE_OPTS := -E 5
 endef
 TARGET_DEVICES += mr24
@@ -107,7 +107,7 @@ define Device/mx60
 		      check-size $$(KERNEL_SIZE) | \
 		      MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | \
 		      MerakiNAND
-  IMAGE/sysupgrade.tar := sysupgrade-tar
+  IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   UBINIZE_OPTS := -E 5
 endef
 TARGET_DEVICES += mx60
@@ -171,7 +171,7 @@ define Device/WNDR4700
   KERNEL_INITRAMFS := kernel-bin | gzip | dtb | wndr4700-specialImage gzip
   IMAGE/factory.img := create-uImage-dtb | append-kernel | pad-to 2M | append-ubi | \
 		       netgear-dni | check-size $$$$(IMAGE_SIZE)
-  IMAGE/sysupgrade.tar := sysupgrade-tar
+  IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   IMAGE/kernel.dtb := export-dtb | uImage none
   NETGEAR_BOARD_ID := WNDR4700
   NETGEAR_HW_ID := 29763875+128+256
