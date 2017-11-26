@@ -217,18 +217,18 @@ define Device/MyBookLiveDefault
   KERNEL := kernel-bin | dtb | gzip | uImage gzip
   KERNEL_INITRAMFS := kernel-bin | dtb | gzip | uImage gzip
   BOOT_SIZE := 8
-  IMAGES := rootfs.img kernel.dtb
+  IMAGES := rootfs.img.gz kernel.dtb
   DEVICE_DTB := apollo3g.dtb
+  BOARD_NAME := mbl
   FILESYSTEMS := ext4
   IMAGE/kernel.dtb := export-dtb
-  IMAGE/rootfs.img := boot-script | boot-img | hdd-img
+  IMAGE/rootfs.img.gz := boot-script | boot-img | hdd-img | gzip | append-metadata
 endef
 
 define Device/MyBookLiveSingle
 $(Device/MyBookLiveDefault)
   DEVICE_TITLE := Western Digital My Book Live
-  DEVICE_DTS := apollo3g
-  DEVICE_PROFILE := apollo3g
+  DEVICE_DTS := wd-mybooklive
 endef
 
 TARGET_DEVICES += MyBookLiveSingle
@@ -237,8 +237,7 @@ define Device/MyBookLiveDuo
 $(Device/MyBookLiveDefault)
   DEVICE_TITLE := Western Digital My Book Live Duo
   DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport kmod-usb-storage kmod-fs-vfat wpad-mini
-  DEVICE_DTS := apollo3g-duo
-  DEVICE_PROFILE := ap2nc
+  DEVICE_DTS := wd-mybooklive-duo
 endef
 
 TARGET_DEVICES += MyBookLiveDuo
