@@ -1,6 +1,7 @@
 #!/bin/sh
 
 PART_NAME=firmware
+REQUIRE_IMAGE_METADATA=1
 
 platform_check_image() {
 	local board=$(board_name)
