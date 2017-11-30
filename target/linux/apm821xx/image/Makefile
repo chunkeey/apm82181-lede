@@ -150,7 +150,7 @@ define Build/wndr4700-specialImage
 	rm -rf $@.fakerd
 endef
 
-define Device/WNDR4700
+define Device/netgear_wndr4700
   DEVICE_TITLE := Netgear Centria N900 WNDR4700/WNDR4720
   DEVICE_PACKAGES := badblocks block-mount e2fsprogs \
 	kmod-dm kmod-fs-ext4 kmod-fs-vfat kmod-usb-ledtrig-usbport \
@@ -177,7 +177,7 @@ define Device/WNDR4700
   NETGEAR_HW_ID := 29763875+128+256
   UBINIZE_OPTS := -E 5
 endef
-TARGET_DEVICES += WNDR4700
+TARGET_DEVICES += netgear_wndr4700
 
 endif
 
