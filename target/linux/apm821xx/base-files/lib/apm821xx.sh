@@ -1,8 +1,5 @@
 #!/bin/sh
 
-APM821XX_BOARD_NAME=
-APM821XX_MODEL=
-
 apm821xx_board_detect() {
 	local model
 	local name
@@ -26,18 +23,13 @@ apm821xx_board_detect() {
 		name="wndr4700"
 		;;
 
-	*)
-		name="unknown"
-		;;
 	esac
 
-	[ -z "$name" ] && name="unknown"
-
-	[ -z "$APM821XX_BOARD_NAME" ] && APM821XX_BOARD_NAME="$name"
-	[ -z "$APM821XX_MODEL" ] && APM821XX_MODEL="$model"
+	# use generic board detect if no name is set
+	[ -z "$name" ] && return
 
 	[ -e "/tmp/sysinfo/" ] || mkdir -p "/tmp/sysinfo/"
 
-	echo "$APM821XX_BOARD_NAME" > /tmp/sysinfo/board_name
-	echo "$APM821XX_MODEL" > /tmp/sysinfo/model
+	echo "$name > /tmp/sysinfo/board_name
+	echo "$model" > /tmp/sysinfo/model
 }
