@@ -27,7 +27,7 @@ mbl)
 	ucidef_set_led_ide "sata" "SATA" "mbl:blue:power"
 	;;
 
-wndr4700)
+netgear,wndr4700)
 	ucidef_set_led_ide "sata" "SATA" "wndr4700:green:hd"
 	ucidef_set_led_switch "wan_green" "WAN (green)" "wndr4700:green:wan" "switch0" "0x20"
 	ucidef_set_led_netdev "wan_yellow" "WAN (yellow)" "wndr4700:yellow:wan" "eth0.2" "tx rx"

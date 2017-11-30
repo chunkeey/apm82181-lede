@@ -5,13 +5,14 @@
 
 get_status_led() {
 	local board=$(board_name)
+	local boardname="${board##*,}"
 
 	case $board in
 	mbl|\
 	mr24|\
 	mx60|\
-	wndr4700)
-		status_led="$board:green:power"
+	netgear,wndr4700)
+		status_led="$boardname:green:power"
 		;;
 
 	*)

@@ -19,8 +19,8 @@ platform_check_image() {
 		return $?;
 		;;
 
-	wndr4700)
-		nand_do_platform_check $board "$1"
+	netgear,wndr4700)
+		nand_do_platform_check "wndr4700" "$1"
 		return $?;
 		;;
 
@@ -41,7 +41,7 @@ platform_pre_upgrade() {
 		merakinand_do_upgrade "$1"
 		;;
 
-	wndr4700)
+	netgear,wndr4700)
 		nand_do_upgrade "$1"
 		;;
 
