@@ -157,9 +157,8 @@ define Device/WNDR4700
 	kmod-md-mod kmod-nls-cp437 kmod-nls-iso8859-1 kmod-nls-iso8859-15 \
 	kmod-nls-utf8 kmod-usb3 kmod-usb-dwc2 kmod-usb-storage \
 	partx-utils
-  DEVICE_NAME := wndr4700
-  DEVICE_PROFILE := wndr4700
   DEVICE_DTS := wndr4700
+  BOARD_NAME := wndr4700
   PAGESIZE := 2048
   SUBPAGESIZE := 512
   BLOCKSIZE := 128k
