@@ -171,11 +171,12 @@ define Device/netgear_wndr4700
   KERNEL_INITRAMFS := kernel-bin | gzip | dtb | wndr4700-specialImage gzip
   IMAGE/factory.img := create-uImage-dtb | append-kernel | pad-to 2M | append-ubi | \
 		       netgear-dni | check-size $$$$(IMAGE_SIZE)
-  IMAGE/sysupgrade.tar := sysupgrade-tar
+  IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   IMAGE/kernel.dtb := export-dtb | uImage none
   NETGEAR_BOARD_ID := WNDR4700
   NETGEAR_HW_ID := 29763875+128+256
   UBINIZE_OPTS := -E 5
+  SUPPORTED_DEVICES := $$(BOARD_NAME) $(subst _,$(comma),$(1))
 endef
 TARGET_DEVICES += netgear_wndr4700
 

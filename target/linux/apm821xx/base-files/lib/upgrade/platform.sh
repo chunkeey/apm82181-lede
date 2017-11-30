@@ -19,11 +19,6 @@ platform_check_image() {
 		return $?;
 		;;
 
-	netgear,wndr4700)
-		nand_do_platform_check "wndr4700" "$1"
-		return $?;
-		;;
-
 	*)
 		;;
 	esac
