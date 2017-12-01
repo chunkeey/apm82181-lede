@@ -87,7 +87,7 @@ c108)
 	ucidef_set_led_netdev "lan" "lan" "$boardname:green:lan" "eth0"
 	ucidef_set_led_netdev "modem" "modem" "$boardname:green:modem" "wwan0"
 	;;
-c20)
+tplink,c20)
 	ucidef_set_led_switch "lan" "lan" "$boardname:blue:lan" "switch0" "0x1e"
 	ucidef_set_led_switch "wan" "wan" "$boardname:blue:wan" "switch0" "0x01"
 	set_usb_led "$boardname:blue:usb"
@@ -369,11 +369,11 @@ tl-wr841n-v13)
 	ucidef_set_led_switch "lan4" "lan4" "$boardname:green:lan4" "switch0" "0x10"
 	ucidef_set_led_switch "wan" "wan" "$boardname:green:wan" "switch0" "0x01"
 	;;
-u25awf-h1)
+kimax,u25awf-h1)
 	set_wifi_led "u25awf:red:wifi"
 	ucidef_set_led_netdev "eth" "eth" "u25awf:green:lan" "eth0"
 	;;
-u7628-01-128M-16M)
+unielec,u7628-01-128m-16m)
 	ucidef_set_led_switch "lan1" "lan1" "u7628-01:green:lan1" "switch0" "0x2"
 	ucidef_set_led_switch "lan2" "lan2" "u7628-01:green:lan2" "switch0" "0x4"
 	ucidef_set_led_switch "lan3" "lan3" "u7628-01:green:lan3" "switch0" "0x8"

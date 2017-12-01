@@ -101,7 +101,7 @@ ramips_setup_interfaces()
 	r6220|\
 	sap-g3200u3|\
 	sk-wb8|\
-	u7621-06-256M-16M|\
+	unielec,u7621-06-256m-16m|\
 	vr500|\
 	wf-2881|\
 	witi|\
@@ -172,9 +172,9 @@ ramips_setup_interfaces()
 	rb750gr3|\
 	rt-n14u|\
 	tl-wr840n-v4|\
-	tl-wr840n-v5|\
+	tplink,tl-wr840n-v5|\
 	tl-wr841n-v13|\
-	u7628-01-128M-16M|\
+	unielec,u7628-01-128m-16m|\
 	ubnt-erx|\
 	ubnt-erx-sfp|\
 	ur-326n4g|\
@@ -187,7 +187,7 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "6@eth0"
 		;;
-	c20|\
+	tplink,c20|\
 	c50)
 		ucidef_add_switch "switch0" \
 			"1:lan:3" "2:lan:4" "3:lan:1" "4:lan:2" "0:wan" "6@eth0"
@@ -240,7 +240,7 @@ ramips_setup_interfaces()
 	mzk-ex750np|\
 	na930|\
 	pbr-d1|\
-	u25awf-h1|\
+	kimax,u25awf-h1|\
 	wli-tx4-ag300n|\
 	wmdr-143n|\
 	wmr-300|\

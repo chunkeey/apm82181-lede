@@ -38,7 +38,7 @@ get_status_led() {
 	pwh2004|\
 	r6220|\
 	tl-wr840n-v4|\
-	tl-wr840n-v5|\
+	tplink,tl-wr840n-v5|\
 	tl-wr841n-v13|\
 	vr500|\
 	wnce2001|\
@@ -121,7 +121,7 @@ get_status_led() {
 	w502u)
 		status_led="$boardname:blue:wps"
 		;;
-	c20|\
+	tplink,c20|\
 	d240|\
 	dap-1350|\
 	na930|\
@@ -240,13 +240,13 @@ get_status_led() {
 	sap-g3200u3)
 		status_led="$boardname:green:usb"
 		;;
-	u25awf-h1)
+	kimax,u25awf-h1)
 		status_led="u25awf:red:wifi"
 		;;
-	u7621-06-256M-16M)
+	unielec,u7621-06-256m-16m)
 		status_led="u7621-06:green:status"
 		;;
-	u7628-01-128M-16M)
+	unielec,u7628-01-128m-16m)
 		status_led="u7628-01:green:power"
 		;;
 	v22rw-2x2)
