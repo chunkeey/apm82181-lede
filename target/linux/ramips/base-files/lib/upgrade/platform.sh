@@ -144,9 +144,9 @@ platform_check_image() {
 	tew-714tru|\
 	timecloud|\
 	tiny-ac|\
-	u25awf-h1|\
-	u7621-06-256M-16M|\
-	u7628-01-128M-16M|\
+	kimax,u25awf-h1|\
+	unielec,u7621-06-256m-16m|\
+	unielec,u7628-01-128m-16m|\
 	ur-326n4g|\
 	ur-336un|\
 	v22rw-2x2|\
@@ -234,12 +234,12 @@ platform_check_image() {
 		}
 		return 0
 		;;
-	c20|\
+	tplink,c20|\
 	c20i|\
 	c50|\
 	mr200|\
 	tl-wr840n-v4|\
-	tl-wr840n-v5|\
+	tplink,tl-wr840n-v5|\
 	tl-wr841n-v13)
 		[ "$magic" != "03000000" ] && {
 			echo "Invalid image type."

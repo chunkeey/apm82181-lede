@@ -39,7 +39,7 @@ endef
 define Device/ArcherC20
   $(Device/Archer)
   DTS := ArcherC20
-  SUPPORTED_DEVICES := c20
+  SUPPORTED_DEVICES := tplink,c20
   TPLINK_FLASHLAYOUT := 8Mmtk
   TPLINK_HWID := 0xc2000001
   TPLINK_HWREV := 0x44
@@ -201,6 +201,7 @@ define Device/u25awf-h1
   DTS := U25AWF-H1
   IMAGE_SIZE := 16064k
   DEVICE_TITLE := Kimax U25AWF-H1
+  SUPPORTED_DEVICES := kimax,u25awf-h1
 endef
 TARGET_DEVICES += u25awf-h1
 
