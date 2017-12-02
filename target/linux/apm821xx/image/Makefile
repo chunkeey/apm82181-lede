@@ -14,7 +14,7 @@ define Device/Default
   KERNEL_ENTRY := 0x00000000
   KERNEL_LOADADDR := 0x00000000
   DEVICE_DTS_DIR := ../dts
-  SUPPORTED_DEVICES = $$(BOARD_NAME)
+  SUPPORTED_DEVICES = $$(BOARD_NAME) $(subst _,$(comma),$(1))
 endef
 
 define Build/dtb
