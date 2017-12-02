@@ -9,19 +9,20 @@ platform_check_image() {
 	[ "$#" -gt 1 ] && return 1
 
 	case "$board" in
-	mbl)
+	wd,mybooklive|\
+	wd,mybooklive-duo)
 		mbl_do_platform_check "$1"
 		return $?;
 		;;
 
-	mr24|\
-	mx60|\
-	wndr4700)
-	        return 0;
+	meraki,buckminster|\
+	meraki,ikarem|\
+	netgear,wndr4700)
+		return 0;
 		;;
 
 	*)
-	        ;;
+		;;
 	esac
 
 	echo "Sysupgrade is not yet supported on $board."
@@ -32,9 +33,9 @@ platform_pre_upgrade() {
 	local board=$(board_name)
 
 	case "$board" in
-	mr24|\
-	mx60|\
-	wndr4700)
+	meraki,buckminster|\
+	meraki,ikarem|\
+	netgear,wndr4700)
 		nand_do_upgrade "$1"
 		;;
 
@@ -47,7 +48,8 @@ platform_do_upgrade() {
 	local board=$(board_name)
 
 	case "$board" in
-	mbl)
+	wd,mybooklive|\
+	wd,mybooklive-duo)
 		mbl_do_upgrade "$ARGV"
 		;;
 
@@ -61,7 +63,8 @@ platform_copy_config() {
 	local board=$(board_name)
 
 	case "$board" in
-	mbl)
+	wd,mybooklive|\
+	wd,mybooklive-duo)
 		mbl_copy_config
 		;;
 

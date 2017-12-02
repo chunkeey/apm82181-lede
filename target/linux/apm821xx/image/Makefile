@@ -9,12 +9,12 @@ DEVICE_VARS += IMAGE_SIZE DTB_SIZE
 
 define Device/Default
   PROFILES := Default
+  DEVICE_DTS := $(subst _,-,$(1))
   KERNEL_DEPENDS = $$(wildcard ../dts/$$(DEVICE_DTS).dts)
-  DEVICE_DTS :=
   KERNEL_ENTRY := 0x00000000
   KERNEL_LOADADDR := 0x00000000
   DEVICE_DTS_DIR := ../dts
-  SUPPORTED_DEVICES = $$(BOARD_NAME)
+  SUPPORTED_DEVICES = $$(BOARD_NAME) $(subst _,$(comma),$(1))
 endef
 
 define Build/dtb
@@ -67,7 +67,7 @@ define Build/MerakiNAND
 	@cp $@.new $@
 endef
 
-define Device/mr24
+define Device/meraki_ikarem
   DEVICE_TITLE := Cisco Meraki MR24
   DEVICE_PACKAGES := kmod-spi-gpio
   BOARD_NAME := mr24
@@ -85,9 +85,9 @@ define Device/mr24
   IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   UBINIZE_OPTS := -E 5
 endef
-TARGET_DEVICES += mr24
+TARGET_DEVICES += meraki_ikarem
 
-define Device/mx60
+define Device/meraki_buckminster
   DEVICE_TITLE := Cisco Meraki MX60/MX60W
   DEVICE_PACKAGES := kmod-spi-gpio kmod-usb-ledtrig-usbport kmod-usb-dwc2 \
   kmod-usb-storage block-mount
@@ -110,7 +110,7 @@ define Device/mx60
   IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   UBINIZE_OPTS := -E 5
 endef
-TARGET_DEVICES += mx60
+TARGET_DEVICES += meraki_buckminster
 
 define Build/create-uImage-dtb
 	# flat_dt target expect FIT image - which WNDR4700's uboot doesn't support
@@ -150,7 +150,7 @@ define Build/wndr4700-specialImage
 	rm -rf $@.fakerd
 endef
 
-define Device/WNDR4700
+define Device/netgear_wndr4700
   DEVICE_TITLE := Netgear Centria N900 WNDR4700/WNDR4720
   DEVICE_PACKAGES := badblocks block-mount e2fsprogs \
 	kmod-dm kmod-fs-ext4 kmod-fs-vfat kmod-usb-ledtrig-usbport \
@@ -177,7 +177,7 @@ define Device/WNDR4700
   NETGEAR_HW_ID := 29763875+128+256
   UBINIZE_OPTS := -E 5
 endef
-TARGET_DEVICES += WNDR4700
+TARGET_DEVICES += netgear_wndr4700
 
 endif
 
@@ -209,7 +209,7 @@ define Build/hdd-img
 	./mbl_gen_hdd_img.sh $@ $@.boot $(IMAGE_ROOTFS)
 endef
 
-define Device/MyBookLiveDefault
+define Device/wd_mybooklive_default
   IMAGE_SIZE := 48m
   BLOCKSIZE := 1k
   DTB_SIZE := 16384
@@ -224,22 +224,18 @@ define Device/MyBookLiveDefault
   IMAGE/rootfs.img.gz := boot-script | boot-img | hdd-img | gzip | append-metadata
 endef
 
-define Device/MyBookLiveSingle
-$(Device/MyBookLiveDefault)
+define Device/wd_mybooklive
+$(Device/wd_mybooklive_default)
   DEVICE_TITLE := Western Digital My Book Live
-  DEVICE_DTS := wd-mybooklive
 endef
 
-TARGET_DEVICES += MyBookLiveSingle
-
-define Device/MyBookLiveDuo
-$(Device/MyBookLiveDefault)
+define Device/wd_mybooklive_duo
+$(Device/wd_mybooklive_default)
   DEVICE_TITLE := Western Digital My Book Live Duo
   DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport kmod-usb-storage kmod-fs-vfat wpad-mini
-  DEVICE_DTS := wd-mybooklive-duo
 endef
 
-TARGET_DEVICES += MyBookLiveDuo
+TARGET_DEVICES += wd_mybooklive wd_mybooklive_duo
 
 endif
 
