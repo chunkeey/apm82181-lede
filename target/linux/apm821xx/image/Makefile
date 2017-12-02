@@ -70,8 +70,8 @@ endef
 define Device/mr24
   DEVICE_TITLE := Cisco Meraki MR24
   DEVICE_PACKAGES := kmod-spi-gpio
-  DEVICE_PROFILE := MR24
-  DEVICE_DTS := MR24
+  BOARD_NAME := mr24
+  DEVICE_DTS := meraki-ikarem
   BLOCKSIZE := 63k
   IMAGES := sysupgrade.tar
   DTB_SIZE := 64512
@@ -91,8 +91,8 @@ define Device/mx60
   DEVICE_TITLE := Cisco Meraki MX60/MX60W
   DEVICE_PACKAGES := kmod-spi-gpio kmod-usb-ledtrig-usbport kmod-usb-dwc2 \
   kmod-usb-storage block-mount
-  DEVICE_PROFILE := MX60
-  DEVICE_DTS := MX60
+  BOARD_NAME := mx60
+  DEVICE_DTS := meraki-buckminster
   BLOCKSIZE := 63k
   IMAGES := sysupgrade.tar
   DTB_SIZE := 64512
@@ -145,7 +145,7 @@ define Build/wndr4700-specialImage
 
 	-$(STAGING_DIR_HOST)/bin/mkimage -A $(LINUX_KARCH) -O linux -T multi \
 		-C $(1) -a $(KERNEL_LOADADDR) -e $(KERNEL_ENTRY) \
-		-n '$(DEVICE_PROFILE) initramfs' -d $@:$@.fakerd:$@.dtb $@.new
+		-n '$(BOARD_NAME) initramfs' -d $@:$@.fakerd:$@.dtb $@.new
 	mv $@.new $@
 	rm -rf $@.fakerd
 endef
@@ -157,9 +157,8 @@ define Device/WNDR4700
 	kmod-md-mod kmod-nls-cp437 kmod-nls-iso8859-1 kmod-nls-iso8859-15 \
 	kmod-nls-utf8 kmod-usb3 kmod-usb-dwc2 kmod-usb-storage \
 	partx-utils
-  DEVICE_NAME := wndr4700
-  DEVICE_PROFILE := wndr4700
-  DEVICE_DTS := wndr4700
+  DEVICE_DTS := netgear-wndr4700
+  BOARD_NAME := wndr4700
   PAGESIZE := 2048
   SUBPAGESIZE := 512
   BLOCKSIZE := 128k
