@@ -10,7 +10,7 @@ DEVICE_VARS += IMAGE_SIZE DTB_SIZE
 define Device/Default
   PROFILES := Default
   KERNEL_DEPENDS = $$(wildcard ../dts/$$(DEVICE_DTS).dts)
-  DEVICE_DTS :=
+  DEVICE_DTS := $(subst _,-,$(1))
   KERNEL_ENTRY := 0x00000000
   KERNEL_LOADADDR := 0x00000000
   DEVICE_DTS_DIR := ../dts
@@ -71,7 +71,6 @@ define Device/meraki_mr24
   DEVICE_TITLE := Cisco Meraki MR24
   DEVICE_PACKAGES := kmod-spi-gpio
   BOARD_NAME := mr24
-  DEVICE_DTS := meraki-mr24
   BLOCKSIZE := 63k
   IMAGES := sysupgrade.tar
   DTB_SIZE := 64512
@@ -92,7 +91,6 @@ define Device/meraki_mx60
   DEVICE_PACKAGES := kmod-spi-gpio kmod-usb-ledtrig-usbport kmod-usb-dwc2 \
   kmod-usb-storage block-mount
   BOARD_NAME := mx60
-  DEVICE_DTS := meraki-mx60
   BLOCKSIZE := 63k
   IMAGES := sysupgrade.tar
   DTB_SIZE := 64512
@@ -158,7 +156,6 @@ define Device/netgear_wndr4700
 	kmod-nls-utf8 kmod-usb3 kmod-usb-dwc2 kmod-usb-storage \
 	partx-utils
   BOARD_NAME := wndr4700
-  DEVICE_DTS := netgear-wndr4700
   PAGESIZE := 2048
   SUBPAGESIZE := 512
   BLOCKSIZE := 128k
@@ -226,7 +223,6 @@ endef
 define Device/wd_mybooklive
 $(Device/MyBookLiveDefault)
   DEVICE_TITLE := Western Digital My Book Live
-  DEVICE_DTS := wd-mybooklive
 endef
 
 TARGET_DEVICES += wd_mybooklive
@@ -235,7 +231,6 @@ define Device/wd_mybooklive_duo
 $(Device/MyBookLiveDefault)
   DEVICE_TITLE := Western Digital My Book Live Duo
   DEVICE_PACKAGES := kmod-usb-dwc2 kmod-usb-ledtrig-usbport kmod-usb-storage kmod-fs-vfat wpad-mini
-  DEVICE_DTS := wd-mybooklive-duo
 endef
 
 TARGET_DEVICES += wd_mybooklive_duo
