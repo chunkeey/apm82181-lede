@@ -1,0 +1,37 @@
+From 3173e0ca32760665e71b1f5b4b64e1c1c662fce3 Mon Sep 17 00:00:00 2001
+From: Mathias Kresin <dev@kresin.me>
+Date: Sun, 10 Dec 2017 23:14:56 +0100
+Subject: [PATCH] tty: serial: lantiq: increase baudrate accuracy
+
+Due to the missing round of the divisor, the danube baudrate is off by
+2.75% (3171 baud) from a requested requested 115200 baudrate. That
+offset is to much for some UART chips and only garbled input is shown.
+With a propper rounding, the offset is down to 1.71% (1975 baud).
+
+There is no impact on other lantiq SoCs at the SoCs default baudrate of
+115200 baud.
+
+At 57600 baud the xrx200 is 0.2% less in off and the offset for ar9 and
+AmazonSE slightly increases to an absolut offset up to 0.9% (522 baud).
+
+Signed-off-by: Mathias Kresin <dev@kresin.me>
+---
+ drivers/tty/serial/lantiq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/tty/serial/lantiq.c b/drivers/tty/serial/lantiq.c
+index b88832e..37d0f89 100644
+--- a/drivers/tty/serial/lantiq.c
++++ b/drivers/tty/serial/lantiq.c
+@@ -455,7 +455,7 @@ lqasc_set_termios(struct uart_port *port,
+ 	/* Set baud rate - take a divider of 2 into account */
+ 	baud = uart_get_baud_rate(port, new, old, 0, port->uartclk / 16);
+ 	divisor = uart_get_divisor(port, baud);
+-	divisor = divisor / 2 - 1;
++	divisor = DIV_ROUND_CLOSEST(divisor, 2) -1;
+ 
+ 	/* disable the baudrate generator */
+ 	ltq_w32_mask(ASCCON_R, 0, port->membase + LTQ_ASC_CON);
+-- 
+2.7.4
+
