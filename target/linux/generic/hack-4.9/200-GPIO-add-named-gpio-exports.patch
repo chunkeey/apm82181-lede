@@ -22,7 +22,7 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
  
  #include "gpiolib.h"
  
-@@ -538,3 +540,70 @@ void of_gpiochip_remove(struct gpio_chip
+@@ -538,3 +540,71 @@ void of_gpiochip_remove(struct gpio_chip
  	gpiochip_remove_pin_ranges(chip);
  	of_node_put(chip->of_node);
  }
@@ -64,9 +64,10 @@ Signed-off-by: John Crispin <blogic@openwrt.org>
 +			if (of_flags == OF_GPIO_ACTIVE_LOW)
 +				flags |= GPIOF_ACTIVE_LOW;
 +
-+			if (!of_property_read_u32(cnp, "gpio-export,output", &val))
++			if (!of_property_read_u32(cnp, "gpio-export,output", &val)) {
++				val = of_flags ? !val : val;
 +				flags |= val ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW;
-+			else
++			} else
 +				flags |= GPIOF_IN;
 +
 +			if (devm_gpio_request_one(&pdev->dev, gpio, flags, name ? name : of_node_full_name(np)))
