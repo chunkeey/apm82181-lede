@@ -6,26 +6,15 @@ REQUIRE_IMAGE_METADATA=1
 platform_check_image() {
 	local board=$(board_name)
 
-	[ "$#" -gt 1 ] && return 1
-
 	case "$board" in
 	mbl)
 		mbl_do_platform_check "$1"
 		return $?;
 		;;
-
-	mr24|\
-	mx60|\
-	wndr4700)
-		return 0;
-		;;
-
 	*)
+		return 0
 		;;
 	esac
-
-	echo "Sysupgrade is not yet supported on $board."
-	return 1
 }
 
 platform_pre_upgrade() {
