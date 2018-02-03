@@ -5,7 +5,7 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
-DEVICE_VARS += IMAGE_SIZE DTB_SIZE
+DEVICE_VARS += IMAGE_SIZE DTB_SIZE CI_INITCMDS CI_PRECMDS CI_POSTCMDS CI_FINALCMDS
 
 define Build/boot-img
 	$(RM) -rf $@.bootdir
@@ -127,12 +127,22 @@ define Device/meraki_mr24
   BOARD_NAME := mr24
   DEVICE_DTS := meraki-mr24
   BLOCKSIZE := 63k
-  IMAGES := sysupgrade.bin
   DTB_SIZE := 64512
   IMAGE_SIZE := 8191k
   KERNEL := kernel-bin | lzma | uImage lzma | MerakiAdd-dtb | MerakiNAND
   KERNEL_INITRAMFS := kernel-bin | lzma | dtb | MuImage-initramfs lzma
+  IMAGES += install.scr sysupgrade.bin
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  CI_INITCMDS := setenv owrt_load1 ubi read \$$$${meraki_loadaddr} kernel; \
+		 setenv owrt_load2 ubi read \$$$${meraki_loadaddr} recovery; \
+		 setenv owrt_bootkernel bootm \$$$${meraki_loadaddr_kernel} - \$$$${meraki_loadaddr_fdt}; \
+		 setenv owrt_bootargs setenv bootargs console=ttyS0,\$$$${baudrate} rootfstype=squashfs mtdoops.mtddev=oops; \
+		 setenv owrt_boot run meraki_ubi owrt_bootargs\; run owrt_load1 owrt_bootkernel\; run owrt_load2 owrt_bootkernel
+  CI_PRECMDS :=  setenv tmp_rm ubi remove part1; run tmp_rm; \
+		 setenv tmp_rm ubi remove part2; run tmp_rm; \
+		 setenv tmp_rm ubi remove storage; run tmp_rm; setenv tmp_rm
+  CI_FINALCMDS := setenv bootcmd run owrt_boot; setenv meraki_remove; saveenv
+  IMAGE/install.scr := ubi-install-script --address 0xc00000 --mode legacy-itest --boottype bootcmd
   UBINIZE_OPTS := -E 5
   SUPPORTED_DEVICES += mr24
 endef
@@ -145,13 +155,23 @@ define Device/meraki_mx60
   BOARD_NAME := mx60
   DEVICE_DTS := meraki-mx60
   BLOCKSIZE := 63k
-  IMAGES := sysupgrade.bin
+  IMAGES := install.scr sysupgrade.bin
   DTB_SIZE := 64512
   IMAGE_SIZE := 1021m
   KERNEL_SIZE := 4031k
   KERNEL := kernel-bin | gzip | uImage gzip | MerakiAdd-dtb | MerakiNAND
   KERNEL_INITRAMFS := kernel-bin | gzip | dtb | MuImage-initramfs gzip
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  CI_INITCMDS := setenv owrt_load1 ubi read \$$$${meraki_loadaddr} kernel; \
+		 setenv owrt_load2 ubi read \$$$${meraki_loadaddr} recovery; \
+		 setenv owrt_bootkernel bootm \$$$${meraki_loadaddr_kernel}; \
+		 setenv owrt_bootargs setenv bootargs console=ttyS0,\$$$${baudrate} rootfstype=squashfs mtdoops.mtddev=oops; \
+		 setenv owrt_boot run meraki_ubi owrt_bootargs\; run owrt_load1 owrt_bootkernel\; run owrt_load2 owrt_bootkernel
+  CI_PRECMDS :=  setenv tmp_rm ubi remove part1; run tmp_rm; \
+		 setenv tmp_rm ubi remove part2; run tmp_rm; \
+		 setenv tmp_rm ubi remove storage; run tmp_rm; setenv tmp_rm
+  CI_FINALCMDS := setenv bootcmd run owrt_boot; setenv meraki_remove; saveenv
+  IMAGE/install.scr := ubi-install-script --address 0x800000 --mode legacy-itest --boottype bootcmd
   UBINIZE_OPTS := -E 5
   SUPPORTED_DEVICES += mx60
 endef

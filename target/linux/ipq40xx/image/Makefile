@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
-DEVICE_VARS += RAS_BOARD RAS_ROOTFS_SIZE RAS_VERSION UBOOT_PATH
+DEVICE_VARS += RAS_BOARD RAS_ROOTFS_SIZE RAS_VERSION CI_PRECMDS CI_POSTCMDS UBOOT_PATH
 
 define Build/prepend-factory-uboot
 	mv $@ $@.bak
@@ -115,13 +115,15 @@ define Device/asus_rt-ac58u
 #	to add a version... or we are very careful not to add '\0' into that
 #	string and call it a day.... Yeah, we do the latter!
 	UIMAGE_NAME:=$(shell echo -e '\03\01\01\01RT-AC58U')
-	IMAGES := sysupgrade.bin factory.trx
+	IMAGES := sysupgrade.bin factory.trx install.scr
 #	The factory image uses a legacy uImage to wrap the firmware
 #	That's why we need two uImage headers at the back.
 	UBOOT_PATH := $(STAGING_DIR_IMAGE)/uboot-rt-ac58u.bin
 	IMAGE/factory.trx := sysupgrade-tar | append-metadata | uImage none | \
 	     prepend-factory-uboot | uImage none | uImage none | \
 	     check-size $$$$(IMAGE_SIZE)
+	CI_PRECMDS := ubi remove jffs2
+	IMAGE/install.scr := ubi-install-script --address 0x84000000 --ubi-partition UBI_DEV --kernel-volname linux --mode fit
 	DEVICE_PACKAGES := kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += asus_rt-ac58u
@@ -281,7 +283,10 @@ define Device/meraki_mr33
 	BLOCKSIZE := 131072
 	PAGESIZE := 2048
 	DEVICE_TITLE := Cisco Meraki MR33
-	IMAGES = sysupgrade.bin
+	CI_KERNPART := part.safe
+	IMAGES = sysupgrade.bin install.scr
+	CI_PRECMDS := ubi remove part.old; ubi remove storage
+	IMAGE/install.scr := ubi-install-script --address 0x84000000 --kernel-volname part.safe --mode fit
 	DEVICE_PACKAGES := -swconfig ath10k-firmware-qca9887-ct
 endef
 TARGET_DEVICES += meraki_mr33
