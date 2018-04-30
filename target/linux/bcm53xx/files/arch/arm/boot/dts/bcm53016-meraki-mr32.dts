@@ -1,0 +1,195 @@
+/*
+ * Broadcom BCM470X / BCM5301X ARM platform code.
+ * DTS for Meraki MR32
+ *
+ * Copyright (C) 2018 Christian Lamparter <chunkeey@gmail.com>
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
+/dts-v1/;
+
+#include "bcm4708.dtsi"
+#include "bcm5301x-nand-cs0-bch8.dtsi"
+
+/ {
+	compatible = "meraki,mr32", "brcm,bcm53016", "brcm,bcm4708";
+	model = "Meraki MR32";
+
+	chosen {
+		bootargs = " console=ttyS0,115200n8 earlycon";
+	};
+
+	memory {
+		reg = <0x00000000 0x08000000>;
+	};
+
+	aliases {
+		led-power = &power;
+		serial1 = &uart2;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		sysled3 {
+			label = "mr32:orange:SYS-LED3";
+			gpios = <&chipcommon 18 GPIO_ACTIVE_LOW>;
+			panic-indicator;
+		};
+		sysled2 {
+			label = "mr32:white:SYS-LED2";
+			gpios = <&chipcommon 19 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	i2c-gpio {
+		compatible = "i2c-gpio";
+
+		/* 4.15+ */
+		sda-gpios = <&chipcommon 5 GPIO_ACTIVE_HIGH>;
+		scl-gpios = <&chipcommon 4 GPIO_ACTIVE_HIGH>;
+
+		/* -4.14 */
+		gpios = <&chipcommon 5 GPIO_ACTIVE_HIGH>,
+			<&chipcommon 4 GPIO_ACTIVE_HIGH>;
+
+		i2c-gpio,delay-us = <10>; /* close to 100 kHz @ 1 GHz */
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cur_mon: ina2xx@45 {
+			compatible = "ti,ina219";
+			reg = <0x45>;
+			shunt-resistor = <60000>; /* = 60 mOhms */
+		};
+
+		meraki_eeprom: at24@50 {
+			compatible = "atmel,24c64";
+			reg = <0x50>;
+			pagesize = <32>;
+			read-only;
+		};
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		restart {
+			label = "Reset";
+			linux,code = <KEY_RESTART>;
+			gpios = <&chipcommon 21 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	pwm-leds {
+		compatible = "pwm-leds";
+
+		red {
+			label = "mr32:red:SYS-LED1";
+			pwms = <&pwm 0 50000 0>;
+		};
+
+		power: green {
+			label = "mr32:green:SYS-LED1";
+			pwms = <&pwm 1 50000 0>;
+		};
+
+		blue {
+			label = "mr32:blue:SYS-LED1";
+			pwms = <&pwm 2 50000 0>;
+		};
+	};
+};
+
+&uart0 {
+	compatible = "ns16550a";
+	/*
+	 * Yes really. The UART0 uses 62.5 MHz as the base frequency.
+	 * But there's doesn't seem to be a clk with this frequency ;(
+	 */
+	clock-frequency = <62500000>;
+	/delete-property/ clocks;
+};
+
+&uart2 {
+	status = "okay";
+
+	bluetooth-le {
+		compatible = "brcm,bcm20732";
+		enable-gpio = <&chipcommon 20 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&gmac1 {
+	status = "disabled";
+};
+&gmac2 {
+	status = "disabled";
+};
+&gmac3 {
+	status = "disabled";
+};
+
+&pwm {
+	status = "okay";
+};
+
+&nandcs {
+	nand-ecc-algo = "hw";
+
+	partitions {
+		/*
+		 * The partition autodetection does not work for this device.
+		 * It will only detect the "nvram" partition with an incorrect size.
+		 *	[    1.721667] 1 bcm47xxpart partitions found on MTD device brcmnand.0
+		 *	[    1.727962] Creating 1 MTD partitions on "brcmnand.0":
+		 *	[    1.733117] 0x000000400000-0x000008000000 : "nvram"
+		 */
+
+		compatible = "fixed-partitions";
+		#address-cells = <0x1>;
+		#size-cells = <0x1>;
+
+		partition0@0 {
+			label = "u-boot";
+			reg = <0x0 0x100000>;
+			read-only;
+		};
+
+		partition1@100000 {
+			label = "bootkernel1";
+			reg = <0x100000 0x300000>;
+			read-only;
+		};
+
+		partition2@400000 {
+			label = "nvram";
+			reg = <0x400000 0x100000>;
+			read-only;
+		};
+
+		partition3@500000 {
+			label = "bootkernel2";
+			reg = <0x500000 0x300000>;
+			read-only;
+		};
+
+		partition4@800000 {
+			label = "ubi";
+			reg = <0x800000 0x7780000>;
+		};
+	};
+};

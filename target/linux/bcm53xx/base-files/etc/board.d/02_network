@@ -69,6 +69,19 @@ netgear,r8500)
 	;;
 esac
 
+# Special case for boards that are just weird.
+case "$board" in
+meraki,mr32)
+	ifname=eth0
+	# The MAC is stored on a AT24 eeprom. which is connected via a
+	# gpio-bit-banged i2c. Hence it uses the kmod-i2c-gpio, which
+	# has to be loaded and that's why we can't extract it earlier
+	mac_lan=$(get_mac_binary "/sys/bus/i2c/devices/0-0050/eeprom" 102)
+	[ -n "$mac_lan" ] && ucidef_set_interface_macaddr "lan" "$mac_lan"
+	exit 0
+	;;
+esac
+
 # NVRAM entries may contain unsorted ports, e.g. Netgear R6250 uses
 # vlan1ports=3 2 1 0 5*
 # vlan2ports=4 5u

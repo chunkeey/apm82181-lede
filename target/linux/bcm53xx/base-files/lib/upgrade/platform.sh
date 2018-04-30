@@ -137,8 +137,15 @@ platform_check_image() {
 			fi
 		;;
 		*)
-			echo "Invalid image type. Please use only .trx files"
-			error=1
+			case "$(board_name)" in
+			meraki,mr32)
+				error=$(nand_do_platform_check meraki-mr32 "$1")
+			;;
+			*)
+				echo "Invalid image type. Please use only .trx files"
+				error=1
+			;;
+			esac
 		;;
 	esac
 
@@ -316,20 +323,37 @@ platform_img_from_seama() {
 }
 
 platform_do_upgrade() {
-	local file_type=$(platform_identify "$1")
-	local trx="$1"
-	local cmd=
+	case "$(board_name)" in
+	meraki,mr32)
+		CI_KERNPART="part.safe"
+		nand_do_upgrade "$1"
+		;;
+	*)
+		local file_type=$(platform_identify "$1")
+		local trx="$1"
+		local cmd=
 
-	[ "$(platform_flash_type)" == "nand" ] && {
-		echo "Writing whole image to NAND flash. All erase counters will be lost."
-	}
+		[ "$(platform_flash_type)" == "nand" ] && {
+			echo "Writing whole image to NAND flash. All erase counters will be lost."
+		}
 
-	case "$file_type" in
-		"chk")		cmd=$(platform_trx_from_chk_cmd "$trx");;
-		"cybertan")	cmd=$(platform_trx_from_cybertan_cmd "$trx");;
-		"safeloader")	trx=$(platform_img_from_safeloader "$trx"); PART_NAME=os-image;;
-		"seama")	trx=$(platform_img_from_seama "$trx");;
+		case "$file_type" in
+			"chk")		cmd=$(platform_trx_from_chk_cmd "$trx");;
+			"cybertan")	cmd=$(platform_trx_from_cybertan_cmd "$trx");;
+			"safeloader")	trx=$(platform_img_from_safeloader "$trx"); PART_NAME=os-image;;
+			"seama")	trx=$(platform_img_from_seama "$trx");;
+		esac
+
+		default_do_upgrade "$trx" "$cmd"
+		;;
 	esac
-
-	default_do_upgrade "$trx" "$cmd"
 }
+
+platform_nand_pre_upgrade() {
+	case "$(board_name)" in
+	meraki,mr32)
+		CI_KERNPART="part.safe"
+		;;
+	esac
+}
+
