@@ -1,0 +1,70 @@
+From c772568788b5f0cbaac7c8d4111d7173bfc90673 Mon Sep 17 00:00:00 2001
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Date: Thu, 21 Sep 2017 18:10:19 +0100
+Subject: [PATCH] ARM: add additional table to compressed kernel
+
+Add an additional extendable table to the compressed kernel so that we
+can provide further information to boot loaders regarding the properties
+of the image contained within.
+
+This is necessary for correct behaviour of kexec.
+
+Tested-by: Tony Lindgren <tony@atomide.com>
+Tested-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+---
+ arch/arm/boot/compressed/head.S        |  2 ++
+ arch/arm/boot/compressed/vmlinux.lds.S | 11 +++++++++++
+ 2 files changed, 13 insertions(+)
+
+diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
+index 8a756870c238..45c8823c3750 100644
+--- a/arch/arm/boot/compressed/head.S
++++ b/arch/arm/boot/compressed/head.S
+@@ -143,6 +143,8 @@ start:
+ 		.word	_magic_start	@ absolute load/run zImage address
+ 		.word	_magic_end	@ zImage end address
+ 		.word	0x04030201	@ endianness flag
++		.word	0x45454545	@ another magic number to indicate
++		.word	_magic_table	@ additional data table
+ 
+ 		__EFI_HEADER
+ 1:
+diff --git a/arch/arm/boot/compressed/vmlinux.lds.S b/arch/arm/boot/compressed/vmlinux.lds.S
+index 7a4c59154361..b38dcef90756 100644
+--- a/arch/arm/boot/compressed/vmlinux.lds.S
++++ b/arch/arm/boot/compressed/vmlinux.lds.S
+@@ -44,12 +44,22 @@ SECTIONS
+     *(.glue_7t)
+     *(.glue_7)
+   }
++  .table : ALIGN(4) {
++    _table_start = .;
++    LONG(ZIMAGE_MAGIC(2))
++    LONG(ZIMAGE_MAGIC(0x5a534c4b))
++    LONG(ZIMAGE_MAGIC(__piggy_size_addr - _start))
++    LONG(ZIMAGE_MAGIC(_kernel_bss_size))
++    LONG(0)
++    _table_end = .;
++  }
+   .rodata : {
+     *(.rodata)
+     *(.rodata.*)
+   }
+   .piggydata : {
+     *(.piggydata)
++    __piggy_size_addr = . - 4;
+   }
+ 
+   . = ALIGN(4);
+@@ -88,6 +98,7 @@ SECTIONS
+   _magic_sig = ZIMAGE_MAGIC(0x016f2818);
+   _magic_start = ZIMAGE_MAGIC(_start);
+   _magic_end = ZIMAGE_MAGIC(_edata);
++  _magic_table = ZIMAGE_MAGIC(_table_start - _start);
+ 
+   . = BSS_START;
+   __bss_start = .;
+-- 
+2.17.0
+

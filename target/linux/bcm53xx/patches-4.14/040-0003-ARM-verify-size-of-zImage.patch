@@ -1,0 +1,56 @@
+From 55e7cff44c7c322310aded74ed92c54b22ccccd4 Mon Sep 17 00:00:00 2001
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Date: Mon, 23 Oct 2017 12:39:32 +0100
+Subject: [PATCH] ARM: verify size of zImage
+
+The linker can sometimes add additional sections to the zImage ELF file
+which results in the zImage binary being larger than expected.  This
+causes appended DT blobs to fail.
+
+Verify that the zImage binary is the expected size, and fail the build
+if this is not the case.
+
+We need to include the .data.rel.ro section in the image as the RiscPC
+build includes font data that contains a small amount of data in this
+section.
+
+Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Tested-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+---
+ arch/arm/boot/compressed/vmlinux.lds.S | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/compressed/vmlinux.lds.S b/arch/arm/boot/compressed/vmlinux.lds.S
+index e6bf6774c4bb..2b963d8e76dd 100644
+--- a/arch/arm/boot/compressed/vmlinux.lds.S
++++ b/arch/arm/boot/compressed/vmlinux.lds.S
+@@ -56,6 +56,7 @@ SECTIONS
+   .rodata : {
+     *(.rodata)
+     *(.rodata.*)
++    *(.data.rel.ro)
+   }
+   .piggydata : {
+     *(.piggydata)
+@@ -101,6 +102,12 @@ SECTIONS
+    * this symbol allows further debug in the near future.
+    */
+   .image_end (NOLOAD) : {
++    /*
++     * EFI requires that the image is aligned to 512 bytes, and appended
++     * DTB requires that we know where the end of the image is.  Ensure
++     * that both are satisfied by ensuring that there are no additional
++     * sections emitted into the decompressor image.
++     */
+     _edata_real = .;
+   }
+ 
+@@ -128,3 +135,4 @@ SECTIONS
+   .stab.indexstr 0	: { *(.stab.indexstr) }
+   .comment 0		: { *(.comment) }
+ }
++ASSERT(_edata_real == _edata, "error: zImage file size is incorrect");
+-- 
+2.17.0
+

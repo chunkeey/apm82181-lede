@@ -1,0 +1,73 @@
+From 429f7a062e3b5cf6fcf01eb00600cee5fe4d751f Mon Sep 17 00:00:00 2001
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Date: Thu, 21 Sep 2017 17:15:23 +0100
+Subject: [PATCH] ARM: decompressor: fix BSS size calculation
+
+Assuming size(1) gives the size of the BSS is a mistake - it reports
+the size of the .bss section in the ELF image, which may not be the
+same as the region we mark with the __bss_start..__bss_stop symbols.
+
+We use the size of the BSS in the decompressor to know whether the
+kernel will overwrite the appended dtb, by adding the BSS size to the
+size of the Image (stored at the end of the compressed data) and adding
+the desired address of the decompressed image.
+
+If the BSS size is smaller than it really is, the decompressor can
+incorrectly assume that the BSS clearance will not overwrite the DTB.
+
+Here is an illustration:
+
+$ arm-linux-size vmlinux
+   text    data      bss      dec     hex filename
+8136972 3098076 10240348 21475396 147b044 vmlinux
+$ arm-linux-nm vmlinux | grep __bss_
+c0ac0e34 B __bss_start
+c1484f9c B __bss_stop
+$ stat -c %s arch/arm/boot/Image
+11243060
+
+In the above case, we are 12 bytes short.  This is caused by the BSS
+section being aligned by one of its input sections:
+
+Idx Name          Size      VMA       LMA       File off  Algn
+ 23 __bug_table   00005d3c  c0abb0f8  c0abb0f8  00acb0f8  2**2
+                  CONTENTS, ALLOC, LOAD, DATA
+ 24 .bss          009c415c  c0ac0e40  c0ac0e40  00ad0e34  2**6
+                  ALLOC
+
+Note that there's an additional 12 bytes difference between the file
+offset and LMA compared with the bug table - this occurs because one
+of the input sections for the .bss section requires a 64 byte
+alignment.
+
+Fix this by using 'nm' and perl to obtain the address of the __bss_start
+and __bss_stop symbols, using their difference for the size of the BSS.
+
+Tested-by: Tony Lindgren <tony@atomide.com>
+Tested-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+---
+ arch/arm/boot/compressed/Makefile | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/compressed/Makefile b/arch/arm/boot/compressed/Makefile
+index d50430c40045..9519ce3d2e1c 100644
+--- a/arch/arm/boot/compressed/Makefile
++++ b/arch/arm/boot/compressed/Makefile
+@@ -116,8 +116,11 @@ ccflags-y := -fpic -mno-single-pic-base -fno-builtin -I$(obj)
+ asflags-y := -DZIMAGE
+ 
+ # Supply kernel BSS size to the decompressor via a linker symbol.
+-KBSS_SZ = $(shell $(CROSS_COMPILE)size $(obj)/../../../../vmlinux | \
+-		awk 'END{print $$3}')
++KBSS_SZ = $(shell $(CROSS_COMPILE)nm $(obj)/../../../../vmlinux | \
++		perl -e 'while (<>) { \
++			$$bss_start=hex($$1) if /^([[:xdigit:]]+) B __bss_start$$/; \
++			$$bss_end=hex($$1) if /^([[:xdigit:]]+) B __bss_stop$$/; \
++		}; printf "%d\n", $$bss_end - $$bss_start;')
+ LDFLAGS_vmlinux = --defsym _kernel_bss_size=$(KBSS_SZ)
+ # Supply ZRELADDR to the decompressor via a linker symbol.
+ ifneq ($(CONFIG_AUTO_ZRELADDR),y)
+-- 
+2.17.0
+
