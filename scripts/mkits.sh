@@ -16,7 +16,7 @@
 
 usage() {
 	echo "Usage: `basename $0` -A arch -C comp -a addr -e entry" \
-		"-v version -k kernel [-D name -d dtb] -o its_file"
+		"-v version -k kernel [-D name -n -d dtb] -o its_file"
 	echo -e "\t-A ==> set architecture to 'arch'"
 	echo -e "\t-C ==> set compression type 'comp'"
 	echo -e "\t-c ==> set config name 'config'"
@@ -25,12 +25,15 @@ usage() {
 	echo -e "\t-v ==> set kernel version to 'version'"
 	echo -e "\t-k ==> include kernel image 'kernel'"
 	echo -e "\t-D ==> human friendly Device Tree Blob 'name'"
+	echo -e "\t-n ==> fdt number'"
 	echo -e "\t-d ==> include Device Tree Blob 'dtb'"
 	echo -e "\t-o ==> create output file 'its_file'"
 	exit 1
 }
 
-while getopts ":A:a:c:C:D:d:e:k:o:v:" OPTION
+FDTNUM=1
+
+while getopts ":A:a:c:C:D:d:e:k:n:o:v:" OPTION
 do
 	case $OPTION in
 		A ) ARCH=$OPTARG;;
@@ -38,6 +41,7 @@ do
 		c ) CONFIG=$OPTARG;;
 		C ) COMPRESS=$OPTARG;;
 		D ) DEVICE=$OPTARG;;
+		n ) FDTNUM=$OPTARG;;
 		d ) DTB=$OPTARG;;
 		e ) ENTRY_ADDR=$OPTARG;;
 		k ) KERNEL=$OPTARG;;
@@ -60,7 +64,7 @@ ARCH_UPPER=`echo $ARCH | tr '[:lower:]' '[:upper:]'`
 # Conditionally create fdt information
 if [ -n "${DTB}" ]; then
 	FDT="
-		fdt@1 {
+		fdt@$FDTNUM {
 			description = \"${ARCH_UPPER} OpenWrt ${DEVICE} device tree blob\";
 			data = /incbin/(\"${DTB}\");
 			type = \"flat_dt\";
@@ -110,7 +114,7 @@ ${FDT}
 		${CONFIG} {
 			description = \"OpenWrt\";
 			kernel = \"kernel@1\";
-			fdt = \"fdt@1\";
+			fdt = \"fdt@$FDTNUM\";
 		};
 	};
 };"
