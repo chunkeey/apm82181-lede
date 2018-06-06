@@ -1,0 +1,36 @@
+From 6da071764b5aa351a2d8e44c3861aee293ed29d9 Mon Sep 17 00:00:00 2001
+From: Christian Lamparter <chunkeey@gmail.com>
+Date: Wed, 6 Jun 2018 21:57:15 +0200
+Subject: [PATCH] ARM: dts: BCM5301X: Specify uart2 in the DT
+
+The BCM53016 in the Meraki MR32 utilizes the third "uart2"
+to connect to a on-board Bluetooth-LE 4.0 BCM20732 chip.
+
+Signed-off-by: Christian Lamparter <chunkeey@gmail.com>
+---
+ arch/arm/boot/dts/bcm5301x.dtsi | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/arch/arm/boot/dts/bcm5301x.dtsi b/arch/arm/boot/dts/bcm5301x.dtsi
+index 73c0a2629646..66306bb07aec 100644
+--- a/arch/arm/boot/dts/bcm5301x.dtsi
++++ b/arch/arm/boot/dts/bcm5301x.dtsi
+@@ -370,6 +370,15 @@
+ 		status = "disabled";
+ 	};
+ 
++	uart2: serial@18008000 {
++		compatible = "ns16550a";
++		reg = <0x18008000 0x20>;
++		clocks = <&iprocslow>;
++		interrupts = <GIC_SPI 86 IRQ_TYPE_LEVEL_HIGH>;
++		reg-shift = <2>;
++		status = "disabled";
++	};
++
+ 	i2c0: i2c@18009000 {
+ 		compatible = "brcm,iproc-i2c";
+ 		reg = <0x18009000 0x50>;
+-- 
+2.17.1
+
