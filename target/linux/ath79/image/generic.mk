@@ -1,7 +1,7 @@
 include ./common-buffalo.mk
 include ./common-netgear.mk
 
-DEVICE_VARS += ADDPATTERN_ID ADDPATTERN_VERSION
+DEVICE_VARS += ADDPATTERN_ID ADDPATTERN_VERSION SEAMA_SIGNATURE
 
 define Build/cybertan-trx
 	@echo -n '' > $@-empty.bin
@@ -42,6 +42,39 @@ define Build/elecom-header
 	fi
 
 endef
+
+define Build/seama
+	$(STAGING_DIR_HOST)/bin/seama -i $@ $(if $(1),$(1),-m "dev=/dev/mtdblock/1" -m "type=firmware")
+	mv $@.seama $@
+endef
+
+define Build/seama-seal
+	$(call Build/seama,-s $@.seama $(1))
+endef
+
+define Device/seama
+  LOADER_TYPE := bin
+  BLOCKSIZE := 64k
+  KERNEL := kernel-bin | relocate-kernel | lzma
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma | seama
+  KERNEL_INITRAMFS_SUFFIX = $$(KERNEL_SUFFIX).seama
+  IMAGES := sysupgrade.bin factory.bin
+
+  # 64 bytes offset:
+  # - 28 bytes seama_header
+  # - 36 bytes of META data (4-bytes aligned)
+  IMAGE/default := append-kernel | append-dtb | \
+	pad-offset $$$$(BLOCKSIZE) 64 | append-rootfs
+  IMAGE/sysupgrade.bin := \
+	$$(IMAGE/default) | seama | pad-rootfs | \
+	check-size $$$$(IMAGE_SIZE)
+  IMAGE/factory.bin := \
+	$$(IMAGE/default) | seama | pad-rootfs | \
+	seama-seal -m "signature=$$$$(SEAMA_SIGNATURE)" | \
+	check-size $$$$(IMAGE_SIZE)
+  SEAMA_SIGNATURE :=
+endef
+
 
 define Device/avm_fritz300e
   ATH_SOC := ar7242
@@ -328,6 +361,26 @@ define Device/phicomm_k2t
   DEVICE_PACKAGES := kmod-leds-reset kmod-ath10k-ct ath10k-firmware-qca9888-ct
 endef
 TARGET_DEVICES += phicomm_k2t
+
+define Device/wd_mynet-n600
+  $(Device/seama)
+  ATH_SOC := ar9344
+  DEVICE_TITLE := Western Digital My Net N600
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 nvram
+  IMAGE_SIZE := 15808k
+  SEAMA_SIGNATURE := wrgnd16_wd_db600
+endef
+TARGET_DEVICES += wd_mynet-n600
+
+define Device/wd_mynet-n750
+  $(Device/seama)
+  ATH_SOC := ar9344
+  DEVICE_TITLE := Western Digital My Net N750
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 nvram
+  IMAGE_SIZE := 15808k
+  SEAMA_SIGNATURE := wrgnd13_wd_av
+endef
+TARGET_DEVICES += wd_mynet-n750
 
 define Device/wd_mynet-wifi-rangeextender
   ATH_SOC := ar9344
