@@ -1,6 +1,6 @@
 --- a/src/crypt/crypt_r.c
 +++ b/src/crypt/crypt_r.c
-@@ -19,12 +19,6 @@ char *__crypt_r(const char *key, const c
+@@ -10,12 +10,6 @@ char *__crypt_r(const char *key, const c
  	if (salt[0] == '$' && salt[1] && salt[2]) {
  		if (salt[1] == '1' && salt[2] == '$')
  			return __crypt_md5(key, salt, output);
