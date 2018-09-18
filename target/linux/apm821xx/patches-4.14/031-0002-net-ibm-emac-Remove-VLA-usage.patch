@@ -1,0 +1,58 @@
+From ee4fccbee7d397c4d937e20d8c76212ffc23a7e3 Mon Sep 17 00:00:00 2001
+From: Kees Cook <keescook@chromium.org>
+Date: Thu, 13 Sep 2018 14:23:56 -0700
+Subject: [PATCH] net/ibm/emac: Remove VLA usage
+
+In the quest to remove all stack VLA usage from the kernel[1], this
+removes the VLA used for the emac xaht registers size. Since the size
+of registers can only ever be 4 or 8, as detected in emac_init_config(),
+the max can be hardcoded and a runtime test added for robustness.
+
+[1] https://lkml.kernel.org/r/CA+55aFzCG-zNmZwX4A2FQpadafLfEzK6CC=qPXydAacU1RqZWA@mail.gmail.com
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Christian Lamparter <chunkeey@gmail.com>
+Cc: Ivan Mikhaylov <ivan@de.ibm.com>
+Cc: netdev@vger.kernel.org
+Co-developed-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/ibm/emac/core.c | 6 +++++-
+ drivers/net/ethernet/ibm/emac/core.h | 3 +++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/ethernet/ibm/emac/core.c
++++ b/drivers/net/ethernet/ibm/emac/core.c
+@@ -423,7 +423,7 @@ static void emac_hash_mc(struct emac_ins
+ {
+ 	const int regs = EMAC_XAHT_REGS(dev);
+ 	u32 *gaht_base = emac_gaht_base(dev);
+-	u32 gaht_temp[regs];
++	u32 gaht_temp[EMAC_XAHT_MAX_REGS];
+ 	struct netdev_hw_addr *ha;
+ 	int i;
+ 
+@@ -2964,6 +2964,10 @@ static int emac_init_config(struct emac_
+ 		dev->xaht_width_shift = EMAC4_XAHT_WIDTH_SHIFT;
+ 	}
+ 
++	/* This should never happen */
++	if (WARN_ON(EMAC_XAHT_REGS(dev) > EMAC_XAHT_MAX_REGS))
++		return -ENXIO;
++
+ 	DBG(dev, "features     : 0x%08x / 0x%08x\n", dev->features, EMAC_FTRS_POSSIBLE);
+ 	DBG(dev, "tx_fifo_size : %d (%d gige)\n", dev->tx_fifo_size, dev->tx_fifo_size_gige);
+ 	DBG(dev, "rx_fifo_size : %d (%d gige)\n", dev->rx_fifo_size, dev->rx_fifo_size_gige);
+--- a/drivers/net/ethernet/ibm/emac/core.h
++++ b/drivers/net/ethernet/ibm/emac/core.h
+@@ -390,6 +390,9 @@ static inline int emac_has_feature(struc
+ #define	EMAC4SYNC_XAHT_SLOTS_SHIFT	8
+ #define	EMAC4SYNC_XAHT_WIDTH_SHIFT	5
+ 
++/* The largest span between slots and widths above is 3 */
++#define	EMAC_XAHT_MAX_REGS		(1 << 3)
++
+ #define	EMAC_XAHT_SLOTS(dev)         	(1 << (dev)->xaht_slots_shift)
+ #define	EMAC_XAHT_WIDTH(dev)         	(1 << (dev)->xaht_width_shift)
+ #define	EMAC_XAHT_REGS(dev)          	(1 << ((dev)->xaht_slots_shift - \

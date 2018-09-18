@@ -1,0 +1,27 @@
+From f8a1988f655192ae8ea6e1d940706a8340924bbc Mon Sep 17 00:00:00 2001
+From: zhong jiang <zhongjiang@huawei.com>
+Date: Tue, 11 Sep 2018 21:08:15 +0800
+Subject: [PATCH] net: ethernet: Use DIV_ROUND_UP instead of reimplementing
+ its function
+
+DIV_ROUND_UP has implemented the code-opened function. Therefore, just
+replace the implementation with DIV_ROUND_UP.
+
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Acked-by: Tariq Toukan <tariqt@mellanox.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/ibm/emac/mal.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/ethernet/ibm/emac/mal.h
++++ b/drivers/net/ethernet/ibm/emac/mal.h
+@@ -136,7 +136,7 @@ static inline int mal_rx_size(int len)
+ 
+ static inline int mal_tx_chunks(int len)
+ {
+-	return (len + MAL_MAX_TX_SIZE - 1) / MAL_MAX_TX_SIZE;
++	return DIV_ROUND_UP(len, MAL_MAX_TX_SIZE);
+ }
+ 
+ #define MAL_CHAN_MASK(n)	(0x80000000 >> (n))

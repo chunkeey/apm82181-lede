@@ -1,0 +1,52 @@
+From 45d6e545505fd32edb812f085be7de45b6a5c0af Mon Sep 17 00:00:00 2001
+From: Ivan Mikhaylov <ivan@de.ibm.com>
+Date: Wed, 24 Jan 2018 15:53:24 +0300
+Subject: [PATCH 1/2] net/ibm/emac: add 8192 rx/tx fifo size
+
+emac4syn chips has availability to use 8192 rx/tx fifo buffer sizes,
+in current state if we set it up in dts 8192 as example, we will get
+only 2048 which may impact on network speed.
+
+Signed-off-by: Ivan Mikhaylov <ivan@de.ibm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/ibm/emac/core.c | 6 ++++++
+ drivers/net/ethernet/ibm/emac/emac.h | 2 ++
+ 2 files changed, 8 insertions(+)
+
+--- a/drivers/net/ethernet/ibm/emac/core.c
++++ b/drivers/net/ethernet/ibm/emac/core.c
+@@ -494,6 +494,9 @@ static u32 __emac_calc_base_mr1(struct e
+ 	case 16384:
+ 		ret |= EMAC_MR1_RFS_16K;
+ 		break;
++	case 8192:
++		ret |= EMAC4_MR1_RFS_8K;
++		break;
+ 	case 4096:
+ 		ret |= EMAC_MR1_RFS_4K;
+ 		break;
+@@ -516,6 +519,9 @@ static u32 __emac4_calc_base_mr1(struct
+ 	case 16384:
+ 		ret |= EMAC4_MR1_TFS_16K;
+ 		break;
++	case 8192:
++		ret |= EMAC4_MR1_TFS_8K;
++		break;
+ 	case 4096:
+ 		ret |= EMAC4_MR1_TFS_4K;
+ 		break;
+--- a/drivers/net/ethernet/ibm/emac/emac.h
++++ b/drivers/net/ethernet/ibm/emac/emac.h
+@@ -138,9 +138,11 @@ struct emac_regs {
+ 
+ #define EMAC4_MR1_RFS_2K		0x00100000
+ #define EMAC4_MR1_RFS_4K		0x00180000
++#define EMAC4_MR1_RFS_8K		0x00200000
+ #define EMAC4_MR1_RFS_16K		0x00280000
+ #define EMAC4_MR1_TFS_2K       		0x00020000
+ #define EMAC4_MR1_TFS_4K		0x00030000
++#define EMAC4_MR1_TFS_8K		0x00040000
+ #define EMAC4_MR1_TFS_16K		0x00050000
+ #define EMAC4_MR1_TR			0x00008000
+ #define EMAC4_MR1_MWSW_001		0x00001000

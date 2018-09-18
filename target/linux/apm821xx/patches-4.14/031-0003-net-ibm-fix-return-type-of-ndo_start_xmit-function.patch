@@ -1,0 +1,48 @@
+From 94b2bb28dbb43fcb943d5275ab19fd5a4972bedb Mon Sep 17 00:00:00 2001
+From: YueHaibing <yuehaibing@huawei.com>
+Date: Tue, 18 Sep 2018 14:35:47 +0800
+Subject: [PATCH] net: ibm: fix return type of ndo_start_xmit function
+
+The method ndo_start_xmit() is defined as returning an 'netdev_tx_t',
+which is a typedef for an enum type, so make sure the implementation in
+this driver has returns 'netdev_tx_t' value, and change the function
+return type to netdev_tx_t.
+
+Found by coccinelle.
+
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/ibm/emac/core.c      | 7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/ethernet/ibm/emac/core.c
++++ b/drivers/net/ethernet/ibm/emac/core.c
+@@ -1409,7 +1409,7 @@ static inline u16 emac_tx_csum(struct em
+ 	return 0;
+ }
+ 
+-static inline int emac_xmit_finish(struct emac_instance *dev, int len)
++static inline netdev_tx_t emac_xmit_finish(struct emac_instance *dev, int len)
+ {
+ 	struct emac_regs __iomem *p = dev->emacp;
+ 	struct net_device *ndev = dev->ndev;
+@@ -1436,7 +1436,7 @@ static inline int emac_xmit_finish(struc
+ }
+ 
+ /* Tx lock BH */
+-static int emac_start_xmit(struct sk_buff *skb, struct net_device *ndev)
++static netdev_tx_t emac_start_xmit(struct sk_buff *skb, struct net_device *ndev)
+ {
+ 	struct emac_instance *dev = netdev_priv(ndev);
+ 	unsigned int len = skb->len;
+@@ -1494,7 +1494,8 @@ static inline int emac_xmit_split(struct
+ }
+ 
+ /* Tx lock BH disabled (SG version for TAH equipped EMACs) */
+-static int emac_start_xmit_sg(struct sk_buff *skb, struct net_device *ndev)
++static netdev_tx_t
++emac_start_xmit_sg(struct sk_buff *skb, struct net_device *ndev)
+ {
+ 	struct emac_instance *dev = netdev_priv(ndev);
+ 	int nr_frags = skb_shinfo(skb)->nr_frags;

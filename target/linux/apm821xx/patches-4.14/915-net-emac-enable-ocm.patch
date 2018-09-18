@@ -1,0 +1,123 @@
+--- a/drivers/net/ethernet/ibm/emac/mal.h	2018-10-28 01:49:03.392164505 +0200
++++ b/drivers/net/ethernet/ibm/emac/mal.h	2018-10-28 02:02:05.240249132 +0200
+@@ -114,10 +114,12 @@
+ #define MAL_TXCARR		0x05
+ #define MAL_TXEOBISR		0x06
+ #define MAL_TXDEIR		0x07
++#define MAL_TXBADDR             0x09
+ #define MAL_RXCASR		0x10
+ #define MAL_RXCARR		0x11
+ #define MAL_RXEOBISR		0x12
+ #define MAL_RXDEIR		0x13
++#define MAL_RXBADDR             0x15
+ #define MAL_TXCTPR(n)		((n) + 0x20)
+ #define MAL_RXCTPR(n)		((n) + 0x40)
+ #define MAL_RCBS(n)		((n) + 0x60)
+@@ -187,6 +189,7 @@ struct mal_commac {
+ struct mal_instance {
+ 	int			version;
+ 	dcr_host_t		dcr_host;
++	bool			desc_in_ocm;
+ 
+ 	int			num_tx_chans;	/* Number of TX channels */
+ 	int			num_rx_chans;	/* Number of RX channels */
+@@ -205,6 +208,7 @@ struct mal_instance {
+ 
+ 	dma_addr_t		bd_dma;
+ 	struct mal_descriptor	*bd_virt;
++	phys_addr_t             bd_phys;
+ 
+ 	struct platform_device	*ofdev;
+ 	int			index;
+--- a/drivers/net/ethernet/ibm/emac/mal.c	2018-10-28 01:37:38.872876241 +0200
++++ b/drivers/net/ethernet/ibm/emac/mal.c	2018-10-28 01:59:21.924515489 +0200
+@@ -31,6 +31,7 @@
+ 
+ #include "core.h"
+ #include <asm/dcr-regs.h>
++#include <asm/ppc4xx_ocm.h>
+ 
+ static int mal_count;
+ 
+@@ -636,22 +637,41 @@ static int mal_probe(struct platform_dev
+ 	bd_size = sizeof(struct mal_descriptor) *
+ 		(NUM_TX_BUFF * mal->num_tx_chans +
+ 		 NUM_RX_BUFF * mal->num_rx_chans);
+-	mal->bd_virt = dma_zalloc_coherent(&ofdev->dev, bd_size, &mal->bd_dma,
+-					   GFP_KERNEL);
++
++	mal->bd_virt = ppc4xx_ocm_alloc(&mal->bd_phys, bd_size, 4,
++			 PPC4XX_OCM_NON_CACHED, dev_name(&ofdev->dev));
++
++	if (mal->bd_virt) {
++		mal->desc_in_ocm = true;
++		mal->bd_dma  = (u32)mal->bd_phys;
++	} else {
++		mal->bd_virt = dma_zalloc_coherent(&ofdev->dev, bd_size,
++					   &mal->bd_dma, GFP_KERNEL);
++	}
++
+ 	if (mal->bd_virt == NULL) {
+ 		err = -ENOMEM;
+ 		goto fail_unmap;
+ 	}
+ 
+-	for (i = 0; i < mal->num_tx_chans; ++i)
++	for (i = 0; i < mal->num_tx_chans; ++i) {
++		if (mal->desc_in_ocm)
++			set_mal_dcrn(mal, MAL_TXBADDR, (mal->bd_phys >> 32));
++
+ 		set_mal_dcrn(mal, MAL_TXCTPR(i), mal->bd_dma +
+ 			     sizeof(struct mal_descriptor) *
+ 			     mal_tx_bd_offset(mal, i));
+ 
+-	for (i = 0; i < mal->num_rx_chans; ++i)
++	}
++
++	for (i = 0; i < mal->num_rx_chans; ++i) {
++		if (mal->desc_in_ocm)
++			set_mal_dcrn(mal, MAL_RXBADDR, (mal->bd_phys >> 32));
++
+ 		set_mal_dcrn(mal, MAL_RXCTPR(i), mal->bd_dma +
+ 			     sizeof(struct mal_descriptor) *
+ 			     mal_rx_bd_offset(mal, i));
++	}
+ 
+ 	if (mal_has_feature(mal, MAL_FTR_COMMON_ERR_INT)) {
+ 		irqflags = IRQF_SHARED;
+@@ -705,7 +725,12 @@ static int mal_probe(struct platform_dev
+  fail3:
+ 	free_irq(mal->serr_irq, mal);
+  fail2:
+-	dma_free_coherent(&ofdev->dev, bd_size, mal->bd_virt, mal->bd_dma);
++	if (mal->desc_in_ocm) {
++		ppc4xx_ocm_free(mal->bd_virt);
++	} else {
++		dma_free_coherent(&ofdev->dev, bd_size, mal->bd_virt,
++				  mal->bd_dma);
++	}
+  fail_unmap:
+ 	dcr_unmap(mal->dcr_host, 0x100);
+  fail:
+@@ -737,11 +762,16 @@ static int mal_remove(struct platform_de
+ 
+ 	mal_reset(mal);
+ 
+-	dma_free_coherent(&ofdev->dev,
+-			  sizeof(struct mal_descriptor) *
+-			  (NUM_TX_BUFF * mal->num_tx_chans +
+-			   NUM_RX_BUFF * mal->num_rx_chans), mal->bd_virt,
+-			  mal->bd_dma);
++	if (mal->desc_in_ocm) {
++		ppc4xx_ocm_free(mal->bd_virt);
++	} else {
++		dma_free_coherent(&ofdev->dev,
++				  sizeof(struct mal_descriptor) *
++				  (NUM_TX_BUFF * mal->num_tx_chans +
++				   NUM_RX_BUFF * mal->num_rx_chans),
++				  mal->bd_virt, mal->bd_dma);
++	}
++
+ 	kfree(mal);
+ 
+ 	return 0;

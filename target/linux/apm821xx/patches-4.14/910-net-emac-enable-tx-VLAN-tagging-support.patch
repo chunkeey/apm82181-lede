@@ -1,0 +1,126 @@
+From fdbbab274962129f46afdc759f949c83bfaf2a40 Mon Sep 17 00:00:00 2001
+From: Christian Lamparter <chunkeey@gmail.com>
+Date: Mon, 17 Sep 2018 10:42:11 +0200
+Subject: [PATCH 2/4] net: emac: implement 802.1Q VLAN TX tagging support
+
+As per' APM82181 Embedded Processor User Manual 26.1 EMAC Features:
+VLAN:
+ - Support for VLAN tag ID in compliance with IEEE 802.3ac.
+ - VLAN tag insertion or replacement for transmit packets
+
+This patch completes the missing code for the VLAN tx tagging
+support, as the the EMAC_MR1_VLE was already enabled.
+
+Signed-off-by: Christian Lamparter <chunkeey@gmail.com>
+---
+ drivers/net/ethernet/ibm/emac/core.c | 32 ++++++++++++++++++++++++----
+ drivers/net/ethernet/ibm/emac/core.h |  8 ++++++-
+ 2 files changed, 35 insertions(+), 5 deletions(-)
+
+--- a/drivers/net/ethernet/ibm/emac/core.c
++++ b/drivers/net/ethernet/ibm/emac/core.c
+@@ -37,6 +37,7 @@
+ #include <linux/ethtool.h>
+ #include <linux/mii.h>
+ #include <linux/bitops.h>
++#include <linux/if_vlan.h>
+ #include <linux/workqueue.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+@@ -674,7 +675,7 @@ static int emac_configure(struct emac_in
+ 		 ndev->dev_addr[5]);
+ 
+ 	/* VLAN Tag Protocol ID */
+-	out_be32(&p->vtpid, 0x8100);
++	out_be32(&p->vtpid, ETH_P_8021Q);
+ 
+ 	/* Receive mode register */
+ 	r = emac_iff2rmr(ndev);
+@@ -1435,6 +1436,22 @@ static inline netdev_tx_t emac_xmit_fini
+ 	return NETDEV_TX_OK;
+ }
+ 
++static inline u16 emac_tx_vlan(struct emac_instance *dev, struct sk_buff *skb)
++{
++	/* Handle VLAN TPID and TCI insert if this is a VLAN skb */
++	if (emac_has_feature(dev, EMAC_FTR_HAS_VLAN_CTAG_TX) &&
++	    skb_vlan_tag_present(skb)) {
++		struct emac_regs __iomem *p = dev->emacp;
++
++		/* update the VLAN TCI */
++		out_be32(&p->vtci, (u32) skb_vlan_tag_get(skb));
++
++		/* Insert VLAN tag */
++		return EMAC_TX_CTRL_IVT;
++	}
++	return 0;
++}
++
+ /* Tx lock BH */
+ static netdev_tx_t emac_start_xmit(struct sk_buff *skb, struct net_device *ndev)
+ {
+@@ -1443,7 +1460,7 @@ static netdev_tx_t emac_start_xmit(struc
+ 	int slot;
+ 
+ 	u16 ctrl = EMAC_TX_CTRL_GFCS | EMAC_TX_CTRL_GP | MAL_TX_CTRL_READY |
+-	    MAL_TX_CTRL_LAST | emac_tx_csum(dev, skb);
++	    MAL_TX_CTRL_LAST | emac_tx_csum(dev, skb) | emac_tx_vlan(dev, skb);
+ 
+ 	slot = dev->tx_slot++;
+ 	if (dev->tx_slot == NUM_TX_BUFF) {
+@@ -1518,7 +1535,7 @@ emac_start_xmit_sg(struct sk_buff *skb,
+ 		goto stop_queue;
+ 
+ 	ctrl = EMAC_TX_CTRL_GFCS | EMAC_TX_CTRL_GP | MAL_TX_CTRL_READY |
+-	    emac_tx_csum(dev, skb);
++	    emac_tx_csum(dev, skb) | emac_tx_vlan(dev, skb);
+ 	slot = dev->tx_slot;
+ 
+ 	/* skb data */
+@@ -2891,7 +2908,8 @@ static int emac_init_config(struct emac_
+ 		if (of_device_is_compatible(np, "ibm,emac-apm821xx")) {
+ 			dev->features |= (EMAC_APM821XX_REQ_JUMBO_FRAME_SIZE |
+ 					  EMAC_FTR_APM821XX_NO_HALF_DUPLEX |
+-					  EMAC_FTR_460EX_PHY_CLK_FIX);
++					  EMAC_FTR_460EX_PHY_CLK_FIX |
++					  EMAC_FTR_HAS_VLAN_CTAG_TX);
+ 		}
+ 	} else if (of_device_is_compatible(np, "ibm,emac4")) {
+ 		dev->features |= EMAC_FTR_EMAC4;
+@@ -3148,6 +3166,12 @@ static int emac_probe(struct platform_de
+ 
+ 	if (dev->tah_dev) {
+ 		ndev->hw_features = NETIF_F_IP_CSUM | NETIF_F_SG;
++
++		if (emac_has_feature(dev, EMAC_FTR_HAS_VLAN_CTAG_TX)) {
++			ndev->vlan_features |= ndev->hw_features;
++			ndev->hw_features |= NETIF_F_HW_VLAN_CTAG_TX;
++		}
++
+ 		ndev->features |= ndev->hw_features | NETIF_F_RXCSUM;
+ 	}
+ 	ndev->watchdog_timeo = 5 * HZ;
+--- a/drivers/net/ethernet/ibm/emac/core.h
++++ b/drivers/net/ethernet/ibm/emac/core.h
+@@ -334,6 +334,10 @@ struct emac_instance {
+  * APM821xx does not support Half Duplex mode
+  */
+ #define EMAC_FTR_APM821XX_NO_HALF_DUPLEX	0x00001000
++/*
++ * EMAC can insert 802.1Q tag
++ */
++#define EMAC_FTR_HAS_VLAN_CTAG_TX		0x00002000
+ 
+ /* Right now, we don't quite handle the always/possible masks on the
+  * most optimal way as we don't have a way to say something like
+@@ -363,7 +367,9 @@ enum {
+ 	EMAC_FTR_460EX_PHY_CLK_FIX |
+ 	EMAC_FTR_440EP_PHY_CLK_FIX |
+ 	EMAC_APM821XX_REQ_JUMBO_FRAME_SIZE |
+-	EMAC_FTR_APM821XX_NO_HALF_DUPLEX,
++	EMAC_FTR_APM821XX_NO_HALF_DUPLEX |
++	EMAC_FTR_HAS_VLAN_CTAG_TX |
++	0,
+ };
+ 
+ static inline int emac_has_feature(struct emac_instance *dev,

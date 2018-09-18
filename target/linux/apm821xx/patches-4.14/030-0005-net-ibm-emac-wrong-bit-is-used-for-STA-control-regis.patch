@@ -1,0 +1,31 @@
+From 624ca9c33c8a853a4a589836e310d776620f4ab9 Mon Sep 17 00:00:00 2001
+From: Ivan Mikhaylov <ivan@de.ibm.com>
+Date: Wed, 24 Jan 2018 15:53:25 +0300
+Subject: [PATCH 2/2] net/ibm/emac: wrong bit is used for STA control register
+ write
+
+STA control register has areas of mode and opcodes for opeations. 18 bit is
+using for mode selection, where 0 is old MIO/MDIO access method and 1 is
+indirect access mode. 19-20 bits are using for setting up read/write
+operation(STA opcodes). In current state 'read' is set into old MIO/MDIO mode
+with 19 bit and write operation is set into 18 bit which is mode selection,
+not a write operation. To correlate write with read we set it into 20 bit.
+All those bit operations are MSB 0 based.
+
+Signed-off-by: Ivan Mikhaylov <ivan@de.ibm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/ibm/emac/emac.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/ethernet/ibm/emac/emac.h
++++ b/drivers/net/ethernet/ibm/emac/emac.h
+@@ -231,7 +231,7 @@ struct emac_regs {
+ #define EMAC_STACR_PHYE			0x00004000
+ #define EMAC_STACR_STAC_MASK		0x00003000
+ #define EMAC_STACR_STAC_READ		0x00001000
+-#define EMAC_STACR_STAC_WRITE		0x00002000
++#define EMAC_STACR_STAC_WRITE		0x00000800
+ #define EMAC_STACR_OPBC_MASK		0x00000C00
+ #define EMAC_STACR_OPBC_50		0x00000000
+ #define EMAC_STACR_OPBC_66		0x00000400

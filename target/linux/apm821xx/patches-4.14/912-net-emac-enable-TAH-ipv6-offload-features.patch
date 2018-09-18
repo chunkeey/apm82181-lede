@@ -1,0 +1,51 @@
+From ad209347d00ed67cbb85abbeaa6849b11ed10d3c Mon Sep 17 00:00:00 2001
+From: Christian Lamparter <chunkeey@gmail.com>
+Date: Tue Oct 16 16:17:19 2018 +0200
+Subject: [PATCH 2/3] net: emac: enable TAH ipv6 offload features
+
+TAH IPv6's feature needs to be explicitly enabled.
+
+Signed-off-by: Christian Lamparter <chunkeey@gmail.com>
+---
+ drivers/net/ethernet/ibm/emac/core.c | 4 ++--
+ drivers/net/ethernet/ibm/emac/tah.c  | 2 +-
+ drivers/net/ethernet/ibm/emac/tah.h  | 2 ++
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/ethernet/ibm/emac/core.c
++++ b/drivers/net/ethernet/ibm/emac/core.c
+@@ -3271,10 +3271,10 @@ static int emac_probe(struct platform_de
+ 		goto err_detach_tah;
+ 
+ 	if (dev->tah_dev) {
+-		ndev->hw_features = NETIF_F_IP_CSUM | NETIF_F_SG;
++		ndev->hw_features = NETIF_F_HW_CSUM | NETIF_F_SG;
+ 
+ 		if (emac_has_feature(dev, EMAC_FTR_TAH_HAS_TSO))
+-			ndev->hw_features |= NETIF_F_TSO;
++			ndev->hw_features |= NETIF_F_TSO | NETIF_F_TSO6;
+ 
+ 		if (emac_has_feature(dev, EMAC_FTR_HAS_VLAN_CTAG_TX)) {
+ 			ndev->vlan_features |= ndev->hw_features;
+--- a/drivers/net/ethernet/ibm/emac/tah.c
++++ b/drivers/net/ethernet/ibm/emac/tah.c
+@@ -81,7 +81,7 @@ void tah_reset(struct platform_device *o
+ 	/* 10KB TAH TX FIFO accommodates the max MTU of 9000 */
+ 	out_be32(&p->mr,
+ 		 TAH_MR_CVR | TAH_MR_ST_768 | TAH_MR_TFS_10KB | TAH_MR_DTFP |
+-		 TAH_MR_DIG);
++		 TAH_MR_DIG | TAH_MR_IPV6);
+ 
+ 	tah_set_ssr(ofdev);
+ }
+--- a/drivers/net/ethernet/ibm/emac/tah.h
++++ b/drivers/net/ethernet/ibm/emac/tah.h
+@@ -71,6 +71,8 @@ struct tah_instance {
+ #define TAH_MR_TFS_10KB		0x00a00000
+ #define TAH_MR_DTFP		0x00100000
+ #define TAH_MR_DIG		0x00080000
++#define TAH_MR_IPV6		0x00040000
++#define TAH_MR_V6INV4		0x00020000
+ 
+ #ifdef CONFIG_IBM_EMAC_TAH
+ 
