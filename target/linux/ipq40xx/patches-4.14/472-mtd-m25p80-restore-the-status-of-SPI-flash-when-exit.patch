@@ -1,0 +1,49 @@
+From 59b356ffd0b00ed986c0aa1b401dd9b466ee619d Mon Sep 17 00:00:00 2001
+From: Hou Zhiqiang <Zhiqiang.Hou@nxp.com>
+Date: Wed, 6 Dec 2017 10:53:42 +0800
+Subject: [PATCH] mtd: m25p80: restore the status of SPI flash when exiting
+
+Restore the status to be compatible with legacy devices.
+Take Freescale eSPI boot for example, it copies (in 3 Byte
+addressing mode) the RCW and bootloader images from SPI flash
+without firing a reset signal previously, so the reboot command
+will fail without resetting the addressing mode of SPI flash.
+This patch implements .shutdown function to restore the status
+in reboot process, and add the same operation to the .remove
+function.
+
+Signed-off-by: Hou Zhiqiang <Zhiqiang.Hou@nxp.com>
+Signed-off-by: Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>
+---
+ drivers/mtd/devices/m25p80.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+--- a/drivers/mtd/devices/m25p80.c
++++ b/drivers/mtd/devices/m25p80.c
+@@ -309,10 +309,18 @@ static int m25p_remove(struct spi_device
+ {
+ 	struct m25p	*flash = spi_get_drvdata(spi);
+ 
++	spi_nor_restore(&flash->spi_nor);
++
+ 	/* Clean up MTD stuff. */
+ 	return mtd_device_unregister(&flash->spi_nor.mtd);
+ }
+ 
++static void m25p_shutdown(struct spi_device *spi)
++{
++	struct m25p *flash = spi_get_drvdata(spi);
++
++	spi_nor_restore(&flash->spi_nor);
++}
+ /*
+  * Do NOT add to this array without reading the following:
+  *
+@@ -387,6 +395,7 @@ static struct spi_driver m25p80_driver =
+ 	.id_table	= m25p_ids,
+ 	.probe	= m25p_probe,
+ 	.remove	= m25p_remove,
++	.shutdown	= m25p_shutdown,
+ 
+ 	/* REVISIT: many of these chips have deep power-down modes, which
+ 	 * should clearly be entered on suspend() to minimize power use.

@@ -206,8 +206,8 @@
 	status = "okay";
 	cs-gpios = <&tlmm 54 GPIO_ACTIVE_HIGH>;
 
-	mx25l25635f@0 {
-		compatible = "mx25l25635f", "jedec,spi-nor";
+	flash@0 {
+		compatible = "jedec,spi-nor";
 		#address-cells = <1>;
 		#size-cells = <0>;
 		reg = <0>;

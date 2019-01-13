@@ -1,0 +1,59 @@
+From 8dee1d971af9af2f7b5f54c2eac4ebd04c5c237c Mon Sep 17 00:00:00 2001
+From: Hou Zhiqiang <Zhiqiang.Hou@nxp.com>
+Date: Wed, 6 Dec 2017 10:53:41 +0800
+Subject: [PATCH] mtd: spi-nor: add an API to restore the status of SPI flash
+ chip
+
+Add this API to restore the status of SPI flash chip to the default
+such as addressing mode, whenever detach the driver from device or
+reboot the system.
+
+Signed-off-by: Hou Zhiqiang <Zhiqiang.Hou@nxp.com>
+Signed-off-by: Cyrille Pitchen <cyrille.pitchen@wedev4u.fr>
+---
+ Documentation/mtd/spi-nor.txt |  3 +++
+ drivers/mtd/spi-nor/spi-nor.c | 10 ++++++++++
+ include/linux/mtd/spi-nor.h   |  6 ++++++
+ 3 files changed, 19 insertions(+)
+
+--- a/Documentation/mtd/spi-nor.txt
++++ b/Documentation/mtd/spi-nor.txt
+@@ -60,3 +60,6 @@ The main API is spi_nor_scan(). Before y
+ initialize the necessary fields for spi_nor{}. Please see
+ drivers/mtd/spi-nor/spi-nor.c for detail. Please also refer to fsl-quadspi.c
+ when you want to write a new driver for a SPI NOR controller.
++Another API is spi_nor_restore(), this is used to restore the status of SPI
++flash chip such as addressing mode. Call it whenever detach the driver from
++device or reboot the system.
+--- a/drivers/mtd/spi-nor/spi-nor.c
++++ b/drivers/mtd/spi-nor/spi-nor.c
+@@ -2687,6 +2687,16 @@ static int spi_nor_init(struct spi_nor *
+ 	return 0;
+ }
+ 
++void spi_nor_restore(struct spi_nor *nor)
++{
++	/* restore the addressing mode */
++	if ((nor->addr_width == 4) &&
++	    (JEDEC_MFR(nor->info) != SNOR_MFR_SPANSION) &&
++	    !(nor->info->flags & SPI_NOR_4B_OPCODES))
++		set_4byte(nor, nor->info, 0);
++}
++EXPORT_SYMBOL_GPL(spi_nor_restore);
++
+ int spi_nor_scan(struct spi_nor *nor, const char *name,
+ 		 const struct spi_nor_hwcaps *hwcaps)
+ {
+--- a/include/linux/mtd/spi-nor.h
++++ b/include/linux/mtd/spi-nor.h
+@@ -399,4 +399,10 @@ struct spi_nor_hwcaps {
+ int spi_nor_scan(struct spi_nor *nor, const char *name,
+ 		 const struct spi_nor_hwcaps *hwcaps);
+ 
++/**
++ * spi_nor_restore_addr_mode() - restore the status of SPI NOR
++ * @nor:	the spi_nor structure
++ */
++void spi_nor_restore(struct spi_nor *nor);
++
+ #endif
