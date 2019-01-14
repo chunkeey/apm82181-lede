@@ -281,29 +281,110 @@
 	};
 };
 
-
 &EMAC0 {
 	status = "okay";
-	phy-handle = <&phy0>;
 	fifo-entry-size = <10>;
+	phy-mode = "rgmii-id";
+	emac,extra-mtu-size-for-dsa = <2>; /* Atheros Header */
 
-	mdio {
+	fixed-link {
+		speed = <1000>;
+		full-duplex;
+		pause;
+		asym-pause;
+	};
+
+	mdio0: mdio {
 		#address-cells = <1>;
 		#size-cells = <0>;
-		phy0: ethernet-phy@0 {
-			device_type = "ethernet-phy";
-			reg = <0>;
-			qca,mib-poll-interval = <500>;
 
-			qca,ar8327-initvals = <
-				0x0010 0x40000000
-				0x0624 0x007f7f7f
-				0x0004 0x07a00000	/* PAD0_MODE */
-				0x000c 0x01000000	/* PAD6_MODE */
-				0x007c 0x0000007e	/* PORT0_STATUS */
-			>;
+		phy0: ethernet-phy@0 {
+			reg = <0>;
+		};
+
+		phy1: ethernet-phy@1 {
+			reg = <1>;
+		};
+
+		phy2: ethernet-phy@2 {
+			reg = <2>;
+		};
+
+		phy3: ethernet-phy@3 {
+			reg = <3>;
+		};
+
+		phy4: ethernet-phy@4 {
+			reg = <4>;
+		};
+
+		switch: switch@1f {
+			compatible = "qca,qca8327";
+			status = "okay";
+			reg = <0x1f>;
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					label = "cpu";
+					ethernet = <&EMAC0>;
+					phy-mode = "rgmii-id";
+					qca,rxclk-delay = <2>;
+					qca,txclk-delay = <2>;
+
+					fixed-link {
+						speed = <1000>;
+						full-duplex;
+						pause;
+						asym-pause;
+					};
+				};
+
+				port@1 {
+					reg = <1>;
+					label = "lan4";
+					phy-handle = <&phy0>;
+				};
+
+				port@2 {
+					reg = <2>;
+					label = "lan3";
+					phy-handle = <&phy1>;
+				};
+
+				port@3 {
+					reg = <3>;
+					label = "lan2";
+					phy-handle = <&phy2>;
+				};
+
+				port@4 {
+					reg = <4>;
+					label = "lan1";
+					phy-handle = <&phy3>;
+				};
+
+				port@5 {
+					reg = <5>;
+					label = "wan";
+					phy-handle = <&phy4>;
+
+					/*
+					 * The AR8327 Datasheet states that
+					 * rx_delay_en always sets 1000M
+					 * delay to 2ns! Even when the
+					 * rx_delay_sel is 0.
+					 */
+					phy-mode = "internal";
+					qca,rxclk-delay = <0>;
+				};
+			};
 		};
 	};
+
 };
 
 &POB0 {

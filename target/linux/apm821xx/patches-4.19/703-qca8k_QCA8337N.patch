@@ -1,0 +1,486 @@
+--- a/drivers/net/dsa/qca8k.h
++++ b/drivers/net/dsa/qca8k.h
+@@ -27,11 +27,14 @@
+ #define QCA8K_NUM_FDB_RECORDS				2048
+ 
+ #define QCA8K_CPU_PORT					0
++#define QCA8K_MAC5_PORT					5
++#define QCA8K_MAC6_PORT					6
+ 
+ /* Global control registers */
+ #define QCA8K_REG_MASK_CTRL				0x000
+-#define   QCA8K_MASK_CTRL_ID_M				0xff
+-#define   QCA8K_MASK_CTRL_ID_S				8
++#define   QCA8K_MASK_CTRL_DEVICE_ID_S			8
++#define	  QCA8K_MASK_CTRL_DEVICE_ID_M			GENMASK(15,8)
++#define   QCA8K_MASK_CTRL_REVISION_ID_M			GENMASK(7, 0)
+ #define QCA8K_REG_PORT0_PAD_CTRL			0x004
+ #define QCA8K_REG_PORT5_PAD_CTRL			0x008
+ #define QCA8K_REG_PORT6_PAD_CTRL			0x00c
+@@ -41,13 +44,19 @@
+ #define   QCA8K_PORT_PAD_RGMII_RX_DELAY(x)		\
+ 						((0x10 + (x & 0x3)) << 20)
+ #define   QCA8K_PORT_PAD_RGMII_RX_DELAY_EN		BIT(24)
++#define   QCA8K_PORT_PAD_RGMII_TX_DELAY_EN		BIT(25)
+ #define   QCA8K_PORT_PAD_SGMII_EN			BIT(7)
++#define QCA8K_REG_PWS_REG				0x010
++#define   QCA8K_PWS_REG_8327_PACKAGE148_EN		BIT(30)
++#define   QCA8K_PWS_REG_8337_PACKAGEMIN_EN		BIT(28)
+ #define QCA8K_REG_MODULE_EN				0x030
+ #define   QCA8K_MODULE_EN_MIB				BIT(0)
+ #define QCA8K_REG_MIB					0x034
+ #define   QCA8K_MIB_FLUSH				BIT(24)
+ #define   QCA8K_MIB_CPU_KEEP				BIT(20)
+ #define   QCA8K_MIB_BUSY				BIT(17)
++#define QCA8K_REG_MAX_FRAME_SIZE			0x078
++#define   QCA8K_MAX_FRAME_SIZE_MTU			GENMASK(14, 0)
+ #define QCA8K_GOL_MAC_ADDR0				0x60
+ #define QCA8K_GOL_MAC_ADDR1				0x64
+ #define QCA8K_REG_PORT_STATUS(_i)			(0x07c + (_i) * 4)
+@@ -63,6 +72,7 @@
+ #define   QCA8K_PORT_STATUS_LINK_UP			BIT(8)
+ #define   QCA8K_PORT_STATUS_LINK_AUTO			BIT(9)
+ #define   QCA8K_PORT_STATUS_LINK_PAUSE			BIT(10)
++#define   QCA8K_PORT_STATUS_LINK_FLOW_CONTROL		BIT(12)
+ #define QCA8K_REG_PORT_HDR_CTRL(_i)			(0x9c + (_i * 4))
+ #define   QCA8K_PORT_HDR_CTRL_RX_MASK			GENMASK(3, 2)
+ #define   QCA8K_PORT_HDR_CTRL_RX_S			2
+@@ -114,6 +124,11 @@
+ #define   QCA8K_GLOBAL_FW_CTRL1_UC_DP_S			0
+ #define QCA8K_PORT_LOOKUP_CTRL(_i)			(0x660 + (_i) * 0xc)
+ #define   QCA8K_PORT_LOOKUP_MEMBER			GENMASK(6, 0)
++#define	  QCA8K_PORT_LOOKUP_VLAN_MODE_MASK		GENMASK(9, 8)
++#define   QCA8K_PORT_LOOKUP_VLAN_MODE_DISABLE		(0 << 8)
++#define   QCA8K_PORT_LOOKUP_VLAN_MODE_FALLBACK		(1 << 8)
++#define   QCA8K_PORT_LOOKUP_VLAN_MODE_CHECK		(2 << 8)
++#define   QCA8K_PORT_LOOKUP_VLAN_MODE_SECURE		(3 << 8)
+ #define   QCA8K_PORT_LOOKUP_STATE_MASK			GENMASK(18, 16)
+ #define   QCA8K_PORT_LOOKUP_STATE_DISABLED		(0 << 16)
+ #define   QCA8K_PORT_LOOKUP_STATE_BLOCKING		(1 << 16)
+@@ -141,6 +156,8 @@
+ /* QCA specific MII registers */
+ #define MII_ATH_MMD_ADDR				0x0d
+ #define MII_ATH_MMD_DATA				0x0e
++#define MII_ATH_DBG_ADDR				0x1d
++#define MII_ATH_DBG_DATA				0x1e
+ 
+ enum {
+ 	QCA8K_PORT_SPEED_10M = 0,
+@@ -168,6 +185,8 @@ struct qca8k_priv {
+ 	struct dsa_switch *ds;
+ 	struct mutex reg_mutex;
+ 	struct device *dev;
++	unsigned int chip_id;
++	unsigned int chip_rev;
+ };
+ 
+ struct qca8k_mib_desc {
+--- a/drivers/net/dsa/qca8k.c
++++ b/drivers/net/dsa/qca8k.c
+@@ -11,6 +11,7 @@
+ #include <linux/netdevice.h>
+ #include <net/dsa.h>
+ #include <linux/of_net.h>
++#include <linux/of_mdio.h>
+ #include <linux/of_platform.h>
+ #include <linux/if_bridge.h>
+ #include <linux/mdio.h>
+@@ -192,6 +193,63 @@ qca8k_rmw(struct qca8k_priv *priv, u32 r
+ }
+ 
+ static void
++qca8k_phy_dbg_read(struct qca8k_priv *priv, int phy_addr,
++           u16 dbg_addr, u16 *dbg_data)
++{
++	struct mii_bus *bus = priv->bus;
++
++	mutex_lock_nested(&bus->mdio_lock, MDIO_MUTEX_NESTED);
++	__mdiobus_write(bus, phy_addr, MII_ATH_DBG_ADDR, dbg_addr);
++	*dbg_data = __mdiobus_read(bus, phy_addr, MII_ATH_DBG_DATA);
++	mutex_unlock(&bus->mdio_lock);
++}
++
++static void
++qca8k_phy_dbg_write(struct qca8k_priv *priv, int phy_addr,
++		     u16 dbg_addr, u16 dbg_data)
++{
++	struct mii_bus *bus = priv->bus;
++
++	mutex_lock_nested(&bus->mdio_lock, MDIO_MUTEX_NESTED);
++	__mdiobus_write(bus, phy_addr, MII_ATH_DBG_ADDR, dbg_addr);
++	__mdiobus_write(bus, phy_addr, MII_ATH_DBG_DATA, dbg_data);
++	mutex_unlock(&bus->mdio_lock);
++}
++
++static inline void
++qca8k_phy_mmd_prep(struct mii_bus *bus, int phy_addr, u16 addr, u16 reg)
++{
++	__mdiobus_write(bus, phy_addr, MII_ATH_MMD_ADDR, addr);
++	__mdiobus_write(bus, phy_addr, MII_ATH_MMD_DATA, reg);
++	__mdiobus_write(bus, phy_addr, MII_ATH_MMD_ADDR, addr | 0x4000);
++}
++
++static void
++qca8k_phy_mmd_write(struct qca8k_priv *priv, int phy_addr, u16 addr, u16 reg, u16 data)
++{
++	struct mii_bus *bus = priv->bus;
++
++	mutex_lock_nested(&bus->mdio_lock, MDIO_MUTEX_NESTED);
++	qca8k_phy_mmd_prep(bus, phy_addr, addr, reg);
++	__mdiobus_write(bus, phy_addr, MII_ATH_MMD_DATA, data);
++	mutex_unlock(&bus->mdio_lock);
++}
++
++static u16
++qca8k_phy_mmd_read(struct qca8k_priv *priv, int phy_addr, u16 addr, u16 reg)
++{
++	struct mii_bus *bus = priv->bus;
++	u16 data;
++
++	mutex_lock_nested(&bus->mdio_lock, MDIO_MUTEX_NESTED);
++	qca8k_phy_mmd_prep(bus, phy_addr, addr, reg);
++	data = __mdiobus_read(bus, phy_addr, MII_ATH_MMD_DATA);
++	mutex_unlock(&bus->mdio_lock);
++
++	return data;
++}
++
++static void
+ qca8k_reg_set(struct qca8k_priv *priv, u32 reg, u32 val)
+ {
+ 	qca8k_rmw(priv, reg, 0, val);
+@@ -417,16 +475,46 @@ qca8k_mib_init(struct qca8k_priv *priv)
+ 	mutex_unlock(&priv->reg_mutex);
+ }
+ 
++static bool is_qca833x_rgmii_compat(struct qca8k_priv *priv)
++{
++	int tmp;
++
++	if (!(of_device_is_compatible(priv->dev->of_node, "qca8k,qca8337") ||
++	      of_device_is_compatible(priv->dev->of_node, "qca8k,qca8334")))
++		return false;
++
++	tmp = of_get_phy_mode(priv->ds->ports[QCA8K_CPU_PORT].dn);
++	if (tmp == PHY_INTERFACE_MODE_RGMII) {
++		tmp = of_get_phy_mode(priv->ds->ports[QCA8K_MAC5_PORT].dn);
++		if (tmp < 0)
++			return true;
++	}
++	return false;
++}
++
+ static int
+-qca8k_set_pad_ctrl(struct qca8k_priv *priv, int port, int mode)
++qca8k_set_pad_ctrl(struct qca8k_priv *priv, int port)
+ {
+-	u32 reg;
++	struct device_node *dn = priv->ds->ports[port].dn;
++	int phy_mode = -1;
++	u32 reg, val = 0;
++	int rgmii_rxclk_delay = 0;
++	int rgmii_txclk_delay = 0;
++	bool legacy_compat = false;
++
++	if (!dn) {
++		pr_info("skip not specified port %d\n", port);
++		return 0;
++	}
+ 
+ 	switch (port) {
+-	case 0:
++	case QCA8K_CPU_PORT:
+ 		reg = QCA8K_REG_PORT0_PAD_CTRL;
+ 		break;
+-	case 6:
++	case QCA8K_MAC5_PORT:
++		reg = QCA8K_REG_PORT5_PAD_CTRL;
++		break;
++	case QCA8K_MAC6_PORT:
+ 		reg = QCA8K_REG_PORT6_PAD_CTRL;
+ 		break;
+ 	default:
+@@ -434,31 +522,78 @@ qca8k_set_pad_ctrl(struct qca8k_priv *pr
+ 		return -EINVAL;
+ 	}
+ 
++	/* Initialize port pad mode (xMII type, delays...) */
++	phy_mode = of_get_phy_mode(dn);
++	if (phy_mode < 0) {
++		if (is_qca833x_rgmii_compat(priv)) {
++			if (port == 5) {
++				pr_warn("legacy qca8k configuration found... please update your DT.");
++				legacy_compat = true;
++				rgmii_rxclk_delay = 3;
++				rgmii_txclk_delay = 3;
++			}
++		} else {
++			pr_err("Can't find phy-mode for port %d\n", port);
++			return phy_mode;
++		}
++	}
++
++	/* rgmii's txclk and rxclk delay can be set even on links that
++	 * aren't  connected to a RGMII CPU interface. So make it possible
++	 * to specify the value even if it seems seemingly strange.
++	 */
++	if (legacy_compat ||
++	    !of_property_read_u32(dn, "qca,rxclk-delay", &rgmii_rxclk_delay) ||
++	    phy_mode == PHY_INTERFACE_MODE_RGMII_ID ||
++	    phy_mode == PHY_INTERFACE_MODE_RGMII_RXID) {
++		if (rgmii_rxclk_delay > 3) {
++			pr_err("Invalid or missing rxclk-delay\n");
++			return -EINVAL;
++		}
++
++		val |= QCA8K_PORT_PAD_RGMII_RX_DELAY(rgmii_rxclk_delay) |
++		       QCA8K_PORT_PAD_RGMII_RX_DELAY_EN;
++
++	};
++
++	if (legacy_compat ||
++	    !of_property_read_u32(dn, "qca,txclk-delay", &rgmii_txclk_delay) ||
++	    phy_mode == PHY_INTERFACE_MODE_RGMII_ID ||
++	    phy_mode == PHY_INTERFACE_MODE_RGMII_TXID) {
++		if (rgmii_txclk_delay > 3) {
++			pr_err("Invalid or missing txclk-delay\n");
++			return -EINVAL;
++		}
++
++		val |= QCA8K_PORT_PAD_RGMII_TX_DELAY(rgmii_txclk_delay) |
++		       QCA8K_PORT_PAD_RGMII_TX_DELAY_EN;
++	}
+ 	/* Configure a port to be directly connected to an external
+ 	 * PHY or MAC.
+ 	 */
+-	switch (mode) {
++	switch (phy_mode) {
+ 	case PHY_INTERFACE_MODE_RGMII:
+-		qca8k_write(priv, reg,
+-			    QCA8K_PORT_PAD_RGMII_EN |
+-			    QCA8K_PORT_PAD_RGMII_TX_DELAY(3) |
+-			    QCA8K_PORT_PAD_RGMII_RX_DELAY(3));
+-
+-		/* According to the datasheet, RGMII delay is enabled through
+-		 * PORT5_PAD_CTRL for all ports, rather than individual port
+-		 * registers
+-		 */
+-		qca8k_write(priv, QCA8K_REG_PORT5_PAD_CTRL,
+-			    QCA8K_PORT_PAD_RGMII_RX_DELAY_EN);
++	case PHY_INTERFACE_MODE_RGMII_ID:
++	case PHY_INTERFACE_MODE_RGMII_RXID:
++	case PHY_INTERFACE_MODE_RGMII_TXID:
++		val |= QCA8K_PORT_PAD_RGMII_EN;
+ 		break;
+ 	case PHY_INTERFACE_MODE_SGMII:
+-		qca8k_write(priv, reg, QCA8K_PORT_PAD_SGMII_EN);
++		if (port != 5)
++			val |= QCA8K_PORT_PAD_SGMII_EN;
++		else {
++			pr_err("Port 5 does not support SGMII\n");
++			return -EINVAL;
++		}
++		break;
++	case PHY_INTERFACE_MODE_INTERNAL:
+ 		break;
+ 	default:
+-		pr_err("xMII mode %d not supported\n", mode);
++		pr_err("xMII mode %d not supported\n", phy_mode);
+ 		return -EINVAL;
+ 	}
+ 
++	qca8k_write(priv, reg, val);
+ 	return 0;
+ }
+ 
+@@ -471,17 +606,71 @@ qca8k_port_set_status(struct qca8k_priv
+ 	if (port > 0 && port < 6)
+ 		mask |= QCA8K_PORT_STATUS_LINK_AUTO;
+ 
+-	if (enable)
++	if (enable) {
++		/* hw limitation: if there's traffic when the port
++		 * gets configured, the port may not work properly
++		 * (no rx!). Currently, we need to disable it completely
++		 * first.
++		 */
++		u32 val;
++
++		val = qca8k_read(priv, QCA8K_REG_PORT_STATUS(port));
++		qca8k_write(priv, QCA8K_REG_PORT_STATUS(port), 0);
++		msleep(100);
++		val |= QCA8K_PORT_STATUS_LINK_FLOW_CONTROL;
++		qca8k_write(priv, QCA8K_REG_PORT_STATUS(port), val);
+ 		qca8k_reg_set(priv, QCA8K_REG_PORT_STATUS(port), mask);
+-	else
++	} else
+ 		qca8k_reg_clear(priv, QCA8K_REG_PORT_STATUS(port), mask);
+ }
+ 
++static void
++qca8327_phy_fixup(struct qca8k_priv *priv, int phy)
++{
++	switch (priv->chip_rev) {
++	case 1:
++		/* For 100M waveform */
++		qca8k_phy_dbg_write(priv, phy, 0, 0x02ea);
++		/* Turn on Gigabit clock */
++		qca8k_phy_dbg_write(priv, phy, 0x3d, 0x68a0);
++		break;
++
++	case 2:
++		qca8k_phy_mmd_write(priv, phy, 0x7, 0x3c, 0x0);
++		/* fallthrough */
++	case 4:
++		qca8k_phy_mmd_write(priv, phy, 0x3, 0x800d, 0x803f);
++		qca8k_phy_dbg_write(priv, phy, 0x3d, 0x6860);
++		qca8k_phy_dbg_write(priv, phy, 0x5, 0x2c46);
++		qca8k_phy_dbg_write(priv, phy, 0x3c, 0x6000);
++		break;
++	}
++}
++
++static int
++qca8k_to_real_phy(struct dsa_switch *ds, int phy)
++{
++	struct device_node *phy_dn, *port_dn;
++	int id;
++
++	port_dn = ds->ports[phy].dn;
++	if (!port_dn)
++		return -EINVAL;
++
++	phy_dn = of_parse_phandle(port_dn, "phy-handle", 0);
++	if (!phy_dn)
++		return -ENODEV;
++
++	id = of_mdio_parse_addr(ds->dev, phy_dn);
++	of_node_put(phy_dn);
++	return id;
++}
++
+ static int
+ qca8k_setup(struct dsa_switch *ds)
+ {
+ 	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
+-	int ret, i, phy_mode = -1;
++	int ret, i;
+ 	u32 mask;
+ 
+ 	/* Make sure that port 0 is the cpu port */
+@@ -498,13 +687,20 @@ qca8k_setup(struct dsa_switch *ds)
+ 	if (IS_ERR(priv->regmap))
+ 		pr_warn("regmap initialization failed");
+ 
+-	/* Initialize CPU port pad mode (xMII type, delays...) */
+-	phy_mode = of_get_phy_mode(ds->ports[QCA8K_CPU_PORT].dn);
+-	if (phy_mode < 0) {
+-		pr_err("Can't find phy-mode for master device\n");
+-		return phy_mode;
++	if (of_device_is_compatible(priv->dev->of_node, "qca,qca8327")) {
++		/* Enables the MAC interface configuration for the 148-pin
++		 * package. All qca8327 are 148-pin */
++		qca8k_write(priv, QCA8K_REG_PWS_REG,
++			QCA8K_PWS_REG_8327_PACKAGE148_EN);
+ 	}
+-	ret = qca8k_set_pad_ctrl(priv, QCA8K_CPU_PORT, phy_mode);
++
++	ret = qca8k_set_pad_ctrl(priv, QCA8K_CPU_PORT);
++	if (ret < 0)
++		return ret;
++	ret = qca8k_set_pad_ctrl(priv, QCA8K_MAC5_PORT);
++	if (ret < 0)
++		return ret;
++	ret = qca8k_set_pad_ctrl(priv, QCA8K_MAC6_PORT);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -530,6 +726,12 @@ qca8k_setup(struct dsa_switch *ds)
+ 		qca8k_rmw(priv, QCA8K_PORT_LOOKUP_CTRL(i),
+ 			  QCA8K_PORT_LOOKUP_MEMBER, 0);
+ 
++	/* Disable VLAN by default on all ports */
++	for (i = 0; i < QCA8K_NUM_PORTS; i++)
++		qca8k_reg_clear(priv,
++				QCA8K_PORT_LOOKUP_CTRL(i),
++				QCA8K_PORT_LOOKUP_VLAN_MODE_MASK);
++
+ 	/* Disable MAC by default on all user ports */
+ 	for (i = 1; i < QCA8K_NUM_PORTS; i++)
+ 		if (dsa_is_user_port(ds, i))
+@@ -542,6 +744,10 @@ qca8k_setup(struct dsa_switch *ds)
+ 		    BIT(0) << QCA8K_GLOBAL_FW_CTRL1_MC_DP_S |
+ 		    BIT(0) << QCA8K_GLOBAL_FW_CTRL1_UC_DP_S);
+ 
++	/* enable jumbo frames */
++	qca8k_rmw(priv, QCA8K_REG_MAX_FRAME_SIZE,
++		  QCA8K_MAX_FRAME_SIZE_MTU, 9018 + 8 + 2);
++
+ 	/* Setup connection between CPU port & user ports */
+ 	for (i = 0; i < DSA_MAX_PORTS; i++) {
+ 		/* CPU port gets connected to all user ports of the switch */
+@@ -573,6 +779,12 @@ qca8k_setup(struct dsa_switch *ds)
+ 		}
+ 	}
+ 
++	if (of_device_is_compatible(priv->dev->of_node, "qca,qca8327")) {
++		for (i = 0; i < DSA_MAX_PORTS; i++)
++			if (dsa_is_user_port(ds, i))
++				qca8327_phy_fixup(priv, qca8k_to_real_phy(ds, i));
++	}
++
+ 	/* Flush the FDB table */
+ 	qca8k_fdb_flush(priv);
+ 
+@@ -624,16 +836,24 @@ static int
+ qca8k_phy_read(struct dsa_switch *ds, int phy, int regnum)
+ {
+ 	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
++	int realphy = qca8k_to_real_phy(ds, phy);
++
++	if (realphy < 0)
++		return realphy;
+ 
+-	return mdiobus_read(priv->bus, phy, regnum);
++	return mdiobus_read(priv->bus, realphy, regnum);
+ }
+ 
+ static int
+ qca8k_phy_write(struct dsa_switch *ds, int phy, int regnum, u16 val)
+ {
+ 	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
++	int realphy = qca8k_to_real_phy(ds, phy);
++
++	if (realphy < 0)
++		return realphy;
+ 
+-	return mdiobus_write(priv->bus, phy, regnum, val);
++	return mdiobus_write(priv->bus, realphy, regnum, val);
+ }
+ 
+ static void
+@@ -910,10 +1130,12 @@ qca8k_sw_probe(struct mdio_device *mdiod
+ 
+ 	/* read the switches ID register */
+ 	id = qca8k_read(priv, QCA8K_REG_MASK_CTRL);
+-	id >>= QCA8K_MASK_CTRL_ID_S;
+-	id &= QCA8K_MASK_CTRL_ID_M;
+-	if (id != QCA8K_ID_QCA8337)
+-		return -ENODEV;
++	priv->chip_rev = (id & QCA8K_MASK_CTRL_REVISION_ID_M);
++	priv->chip_id = (id & QCA8K_MASK_CTRL_DEVICE_ID_M) >>
++		QCA8K_MASK_CTRL_DEVICE_ID_S;
++
++	pr_info("qca8k: chip id:%d revision:%d\n",
++		priv->chip_id, priv->chip_rev);
+ 
+ 	priv->ds = dsa_switch_alloc(&mdiodev->dev, DSA_MAX_PORTS);
+ 	if (!priv->ds)
+@@ -980,6 +1202,7 @@ static SIMPLE_DEV_PM_OPS(qca8k_pm_ops,
+ static const struct of_device_id qca8k_of_match[] = {
+ 	{ .compatible = "qca,qca8334" },
+ 	{ .compatible = "qca,qca8337" },
++	{ .compatible = "qca,qca8327" },
+ 	{ /* sentinel */ },
+ };
+ 

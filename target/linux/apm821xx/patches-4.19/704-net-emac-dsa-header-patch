@@ -1,0 +1,80 @@
+--- a/drivers/net/ethernet/ibm/emac/core.c
++++ b/drivers/net/ethernet/ibm/emac/core.c
+@@ -469,7 +469,7 @@ static inline u32 emac_iff2rmr(struct ne
+ 
+ 	if (emac_has_feature(dev, EMAC_APM821XX_REQ_JUMBO_FRAME_SIZE)) {
+ 		r &= ~EMAC4_RMR_MJS_MASK;
+-		r |= EMAC4_RMR_MJS(ndev->mtu);
++		r |= EMAC4_RMR_MJS(ndev->mtu + dev->dsa_header);
+ 	}
+ 
+ 	return r;
+@@ -629,7 +629,7 @@ static int emac_configure(struct emac_in
+ 		tx_size = dev->tx_fifo_size_gige;
+ 		rx_size = dev->rx_fifo_size_gige;
+ 
+-		if (dev->ndev->mtu > ETH_DATA_LEN) {
++		if (dev->ndev->mtu + dev->dsa_header > ETH_DATA_LEN) {
+ 			if (emac_has_feature(dev, EMAC_FTR_EMAC4))
+ 				mr1 |= EMAC4_MR1_JPSM;
+ 			else
+@@ -1102,7 +1102,7 @@ static int emac_resize_rx_ring(struct em
+ 		/* This is to prevent starting RX channel in emac_rx_enable() */
+ 		set_bit(MAL_COMMAC_RX_STOPPED, &dev->commac.flags);
+ 
+-		dev->ndev->mtu = new_mtu;
++		dev->ndev->mtu = new_mtu - dev->dsa_header;
+ 		emac_full_tx_reset(dev);
+ 	}
+ 
+@@ -1129,14 +1129,16 @@ static int emac_change_mtu(struct net_de
+ 
+ 	if (netif_running(ndev)) {
+ 		/* Check if we really need to reinitialize RX ring */
+-		if (emac_rx_skb_size(ndev->mtu) != emac_rx_skb_size(new_mtu))
+-			ret = emac_resize_rx_ring(dev, new_mtu);
++		if (emac_rx_skb_size(ndev->mtu + dev->dsa_header) !=
++		    emac_rx_skb_size(new_mtu + dev->dsa_header))
++			ret = emac_resize_rx_ring(dev, new_mtu +
++						  dev->dsa_header);
+ 	}
+ 
+ 	if (!ret) {
+ 		ndev->mtu = new_mtu;
+-		dev->rx_skb_size = emac_rx_skb_size(new_mtu);
+-		dev->rx_sync_size = emac_rx_sync_size(new_mtu);
++		dev->rx_skb_size = emac_rx_skb_size(new_mtu + dev->dsa_header);
++		dev->rx_sync_size = emac_rx_sync_size(new_mtu + dev->dsa_header);
+ 	}
+ 
+ 	return ret;
+@@ -1286,7 +1288,8 @@ static int emac_open(struct net_device *
+ 	emac_configure(dev);
+ 	mal_poll_add(dev->mal, &dev->commac);
+ 	mal_enable_tx_channel(dev->mal, dev->mal_tx_chan);
+-	mal_set_rcbs(dev->mal, dev->mal_rx_chan, emac_rx_size(ndev->mtu));
++	mal_set_rcbs(dev->mal, dev->mal_rx_chan, emac_rx_size(ndev->mtu +
++		dev->dsa_header));
+ 	mal_enable_rx_channel(dev->mal, dev->mal_rx_chan);
+ 	emac_tx_enable(dev);
+ 	emac_rx_enable(dev);
+@@ -2896,6 +2899,8 @@ static int emac_init_config(struct emac_
+ 		dev->fifo_entry_size = 16;
+ 	if (emac_read_uint_prop(np, "mal-burst-size", &dev->mal_burst_size, 0))
+ 		dev->mal_burst_size = 256;
++	if (emac_read_uint_prop(np, "emac,extra-mtu-size-for-dsa", &dev->dsa_header, 0))
++		dev->dsa_header = 0;
+ 
+ 	/* PHY mode needs some decoding */
+ 	dev->phy_mode = of_get_phy_mode(np);
+--- a/drivers/net/ethernet/ibm/emac/core.h
++++ b/drivers/net/ethernet/ibm/emac/core.h
+@@ -225,6 +225,8 @@ struct emac_instance {
+ 
+ 	/* Max supported MTU */
+ 	u32				max_mtu;
++	/* extra dsa header */
++	u32				dsa_header;
+ 
+ 	/* Feature bits (from probe table) */
+ 	unsigned int			features;
