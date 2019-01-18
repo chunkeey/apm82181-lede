@@ -1,0 +1,44 @@
+From 91ba479573792e1f375e6c2b587c6eab882baa20 Mon Sep 17 00:00:00 2001
+From: Andrew Lunn <andrew@lunn.ch>
+Date: Sat, 8 Dec 2018 17:05:18 +0100
+Subject: [PATCH] net: dsa: Restore MTU on master device on unload
+
+A previous change tries to set the MTU on the master device to take
+into account the DSA overheads. This patch tries to reset the master
+device back to the default MTU.
+
+Signed-off-by: Andrew Lunn <andrew@lunn.ch>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/dsa/master.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+--- a/net/dsa/master.c
++++ b/net/dsa/master.c
+@@ -172,6 +172,18 @@ void dsa_master_set_mtu(struct net_devic
+ 	rtnl_unlock();
+ }
+ 
++static void dsa_master_reset_mtu(struct net_device *dev)
++{
++	int err;
++
++	rtnl_lock();
++	err = dev_set_mtu(dev, ETH_DATA_LEN);
++	if (err)
++		netdev_dbg(dev,
++			   "Unable to reset MTU to exclude DSA overheads\n");
++	rtnl_unlock();
++}
++
+ int dsa_master_setup(struct net_device *dev, struct dsa_port *cpu_dp)
+ {
+ 	dsa_master_set_mtu(dev,  cpu_dp);
+@@ -190,6 +202,7 @@ int dsa_master_setup(struct net_device *
+ void dsa_master_teardown(struct net_device *dev)
+ {
+ 	dsa_master_ethtool_teardown(dev);
++	dsa_master_reset_mtu(dev);
+ 
+ 	dev->dsa_ptr = NULL;
+ 

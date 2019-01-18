@@ -1,0 +1,110 @@
+From a5dd308778a4e05e7b0b927cf18b89d1ebbff59c Mon Sep 17 00:00:00 2001
+From: Andrew Lunn <andrew@lunn.ch>
+Date: Thu, 6 Dec 2018 11:36:04 +0100
+Subject: [PATCH] net: dsa: Add overhead to tag protocol ops.
+
+Each DSA tag protocol needs to add additional headers to the Ethernet
+frame in order to direct it towards a specific switch egress port. It
+must also remove the head from a frame received from a
+switch. Indicate the maximum size of these headers in the tag protocol
+ops structure, so the core can take these overheads into account.
+
+Signed-off-by: Andrew Lunn <andrew@lunn.ch>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+[removed net/dsa/tag_gswip.c it's not in 4.19]
+---
+ include/net/dsa.h     | 1 +
+ net/dsa/tag_brcm.c    | 2 ++
+ net/dsa/tag_dsa.c     | 1 +
+ net/dsa/tag_edsa.c    | 1 +
+ net/dsa/tag_gswip.c   | 1 +
+ net/dsa/tag_ksz.c     | 1 +
+ net/dsa/tag_lan9303.c | 1 +
+ net/dsa/tag_mtk.c     | 1 +
+ net/dsa/tag_qca.c     | 1 +
+ net/dsa/tag_trailer.c | 1 +
+ 10 files changed, 11 insertions(+)
+
+--- a/include/net/dsa.h
++++ b/include/net/dsa.h
+@@ -112,6 +112,7 @@ struct dsa_device_ops {
+ 			       struct packet_type *pt);
+ 	int (*flow_dissect)(const struct sk_buff *skb, __be16 *proto,
+ 			    int *offset);
++	unsigned int overhead;
+ };
+ 
+ struct dsa_switch_tree {
+--- a/net/dsa/tag_brcm.c
++++ b/net/dsa/tag_brcm.c
+@@ -174,6 +174,7 @@ static struct sk_buff *brcm_tag_rcv(stru
+ const struct dsa_device_ops brcm_netdev_ops = {
+ 	.xmit	= brcm_tag_xmit,
+ 	.rcv	= brcm_tag_rcv,
++	.overhead = BRCM_TAG_LEN,
+ };
+ #endif
+ 
+@@ -196,5 +197,6 @@ static struct sk_buff *brcm_tag_rcv_prep
+ const struct dsa_device_ops brcm_prepend_netdev_ops = {
+ 	.xmit	= brcm_tag_xmit_prepend,
+ 	.rcv	= brcm_tag_rcv_prepend,
++	.overhead = BRCM_TAG_LEN,
+ };
+ #endif
+--- a/net/dsa/tag_dsa.c
++++ b/net/dsa/tag_dsa.c
+@@ -149,4 +149,5 @@ static struct sk_buff *dsa_rcv(struct sk
+ const struct dsa_device_ops dsa_netdev_ops = {
+ 	.xmit	= dsa_xmit,
+ 	.rcv	= dsa_rcv,
++	.overhead = DSA_HLEN,
+ };
+--- a/net/dsa/tag_edsa.c
++++ b/net/dsa/tag_edsa.c
+@@ -168,4 +168,5 @@ static struct sk_buff *edsa_rcv(struct s
+ const struct dsa_device_ops edsa_netdev_ops = {
+ 	.xmit	= edsa_xmit,
+ 	.rcv	= edsa_rcv,
++	.overhead = EDSA_HLEN,
+ };
+--- a/net/dsa/tag_ksz.c
++++ b/net/dsa/tag_ksz.c
+@@ -99,4 +99,5 @@ static struct sk_buff *ksz_rcv(struct sk
+ const struct dsa_device_ops ksz_netdev_ops = {
+ 	.xmit	= ksz_xmit,
+ 	.rcv	= ksz_rcv,
++	.overhead = KSZ_INGRESS_TAG_LEN,
+ };
+--- a/net/dsa/tag_lan9303.c
++++ b/net/dsa/tag_lan9303.c
+@@ -140,4 +140,5 @@ static struct sk_buff *lan9303_rcv(struc
+ const struct dsa_device_ops lan9303_netdev_ops = {
+ 	.xmit = lan9303_xmit,
+ 	.rcv = lan9303_rcv,
++	.overhead = LAN9303_TAG_LEN,
+ };
+--- a/net/dsa/tag_mtk.c
++++ b/net/dsa/tag_mtk.c
+@@ -109,4 +109,5 @@ const struct dsa_device_ops mtk_netdev_o
+ 	.xmit		= mtk_tag_xmit,
+ 	.rcv		= mtk_tag_rcv,
+ 	.flow_dissect	= mtk_tag_flow_dissect,
++	.overhead	= MTK_HDR_LEN,
+ };
+--- a/net/dsa/tag_qca.c
++++ b/net/dsa/tag_qca.c
+@@ -101,4 +101,5 @@ static struct sk_buff *qca_tag_rcv(struc
+ const struct dsa_device_ops qca_netdev_ops = {
+ 	.xmit	= qca_tag_xmit,
+ 	.rcv	= qca_tag_rcv,
++	.overhead = QCA_HDR_LEN,
+ };
+--- a/net/dsa/tag_trailer.c
++++ b/net/dsa/tag_trailer.c
+@@ -84,4 +84,5 @@ static struct sk_buff *trailer_rcv(struc
+ const struct dsa_device_ops trailer_netdev_ops = {
+ 	.xmit	= trailer_xmit,
+ 	.rcv	= trailer_rcv,
++	.overhead = 4,
+ };

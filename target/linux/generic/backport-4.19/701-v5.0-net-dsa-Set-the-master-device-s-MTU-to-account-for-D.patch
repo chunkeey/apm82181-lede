@@ -1,0 +1,45 @@
+From dc0fe7d47f9f2256e3aa695bb754625f37291e17 Mon Sep 17 00:00:00 2001
+From: Andrew Lunn <andrew@lunn.ch>
+Date: Thu, 6 Dec 2018 11:36:05 +0100
+Subject: [PATCH] net: dsa: Set the master device's MTU to account for DSA
+ overheads
+
+DSA tagging of frames sent over the master interface to the switch
+increases the size of the frame. Such frames can then be bigger than
+the normal MTU of the master interface, and it may drop them. Use the
+overhead information from the tagger to set the MTU of the master
+device to include this overhead.
+
+Signed-off-by: Andrew Lunn <andrew@lunn.ch>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/dsa/master.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+--- a/net/dsa/master.c
++++ b/net/dsa/master.c
+@@ -158,8 +158,24 @@ static void dsa_master_ethtool_teardown(
+ 	cpu_dp->orig_ethtool_ops = NULL;
+ }
+ 
++void dsa_master_set_mtu(struct net_device *dev, struct dsa_port *cpu_dp)
++{
++	unsigned int mtu = ETH_DATA_LEN + cpu_dp->tag_ops->overhead;
++	int err;
++
++	rtnl_lock();
++	if (mtu <= dev->max_mtu) {
++		err = dev_set_mtu(dev, mtu);
++		if (err)
++			netdev_dbg(dev, "Unable to set MTU to include for DSA overheads\n");
++	}
++	rtnl_unlock();
++}
++
+ int dsa_master_setup(struct net_device *dev, struct dsa_port *cpu_dp)
+ {
++	dsa_master_set_mtu(dev,  cpu_dp);
++
+ 	/* If we use a tagging format that doesn't have an ethertype
+ 	 * field, make sure that all packets from this point on get
+ 	 * sent to the tag format's receive function.
