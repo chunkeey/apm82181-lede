@@ -1,0 +1,89 @@
+From 0f1827db3a7760b0c4d418307c62fbb61415bd45 Mon Sep 17 00:00:00 2001
+From: Christian Lamparter <chunkeey@gmail.com>
+Date: Fri, 1 Feb 2019 22:54:32 +0100
+Subject: [PATCH] net: dsa: qca8k: implement DT-based ports <-> phy translation
+
+The QCA8337 enumerates 5 PHYs on the MDC/MDIO access: PHY0-PHY4.
+These PHYs are internally connected to PORT 1 to PORT 5 MAC of
+the switch based on the System Block Diagram in Section 1.2
+of the datasheet.
+
+This patch version of the patch uses the existing phy-handle
+properties of each specified DSA Port in the DT to map each
+PORT/MAC to its proper PHY.
+
+Signed-off-by: Christian Lamparter <chunkeey@gmail.com>
+---
+ drivers/net/dsa/qca8k.c | 37 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/dsa/qca8k.c b/drivers/net/dsa/qca8k.c
+index a4b6cda38016..5879a70e803d 100644
+--- a/drivers/net/dsa/qca8k.c
++++ b/drivers/net/dsa/qca8k.c
+@@ -11,6 +11,7 @@
+ #include <linux/netdevice.h>
+ #include <net/dsa.h>
+ #include <linux/of_net.h>
++#include <linux/of_mdio.h>
+ #include <linux/of_platform.h>
+ #include <linux/if_bridge.h>
+ #include <linux/mdio.h>
+@@ -612,20 +613,52 @@ qca8k_adjust_link(struct dsa_switch *ds, int port, struct phy_device *phy)
+ 	qca8k_port_set_status(priv, port, 1);
+ }
+ 
++static int
++qca8k_to_real_phy(struct dsa_switch *ds, int phy)
++{
++	struct device_node *phy_dn, *port_dn;
++	int id;
++
++	if (phy >= ds->num_ports)
++		return -EINVAL;
++
++	port_dn = ds->ports[phy].dn;
++	if (!port_dn)
++		return -EINVAL;
++
++	phy_dn = of_parse_phandle(port_dn, "phy-handle", 0);
++	if (!phy_dn) {
++		/* remain compatible with existing users */
++		return phy;
++	}
++
++	id = of_mdio_parse_addr(ds->dev, phy_dn);
++	of_node_put(phy_dn);
++	return id;
++}
++
+ static int
+ qca8k_phy_read(struct dsa_switch *ds, int phy, int regnum)
+ {
+ 	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
++	int realphy = qca8k_to_real_phy(ds, phy);
++
++	if (realphy < 0)
++		return realphy;
+ 
+-	return mdiobus_read(priv->bus, phy, regnum);
++	return mdiobus_read(priv->bus, realphy, regnum);
+ }
+ 
+ static int
+ qca8k_phy_write(struct dsa_switch *ds, int phy, int regnum, u16 val)
+ {
+ 	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
++	int realphy = qca8k_to_real_phy(ds, phy);
++
++	if (realphy < 0)
++		return realphy;
+ 
+-	return mdiobus_write(priv->bus, phy, regnum, val);
++	return mdiobus_write(priv->bus, realphy, regnum, val);
+ }
+ 
+ static void
+-- 
+2.20.1
+
