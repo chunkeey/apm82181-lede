@@ -19,8 +19,8 @@ netgear,r7500 |\
 netgear,r7500v2 |\
 qcom,ipq8064-ap148 |\
 tplink,vr2600v)
-	ucidef_add_switch "switch0" \
-		"1:lan" "2:lan" "3:lan" "4:lan" "6@eth1" "5:wan" "0@eth0"
+	ucidef_set_interface_lan "lan1 lan2 lan3 lan4"
+	ucidef_set_interface_wan "wan"
 	;;
 qcom,ipq8064-ap161)
 	ucidef_set_interface_lan "eth1 eth2"
