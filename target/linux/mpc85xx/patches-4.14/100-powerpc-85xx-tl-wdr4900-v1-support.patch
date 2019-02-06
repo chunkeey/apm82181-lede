@@ -17,37 +17,30 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
 
 --- a/arch/powerpc/boot/Makefile
 +++ b/arch/powerpc/boot/Makefile
-@@ -156,6 +156,7 @@ src-plat-$(CONFIG_PPC_PSERIES) += pserie
- src-plat-$(CONFIG_PPC_POWERNV) += pseries-head.S
- src-plat-$(CONFIG_PPC_IBM_CELL_BLADE) += pseries-head.S
- src-plat-$(CONFIG_MVME7100) += motload-head.S mvme7100.c
-+src-plat-$(CONFIG_TL_WDR4900_V1) += tl-wdr4900-v1.c
- 
- src-wlib := $(sort $(src-wlib-y))
- src-plat := $(sort $(src-plat-y))
 @@ -335,7 +336,7 @@ image-$(CONFIG_TQM8555)			+= cuImage.tqm
  image-$(CONFIG_TQM8560)			+= cuImage.tqm8560
  image-$(CONFIG_SBC8548)			+= cuImage.sbc8548
  image-$(CONFIG_KSI8560)			+= cuImage.ksi8560
 -
-+image-$(CONFIG_TL_WDR4900_V1)		+= dtbImage.tl-wdr4900-v1
++image-$(CONFIG_TL_WDR4900_V1)		+= simpleImage.tl-wdr4900-v1
  # Board ports in arch/powerpc/platform/86xx/Kconfig
  image-$(CONFIG_MVME7100)                += dtbImage.mvme7100
  
 --- a/arch/powerpc/boot/wrapper
 +++ b/arch/powerpc/boot/wrapper
-@@ -335,6 +335,11 @@ treeboot-akebono)
- treeboot-iss4xx-mpic)
-     platformo="$object/treeboot-iss4xx.o"
+@@ -294,6 +294,12 @@ ps3)
+     make_space=n
+     pie=
      ;;
++simpleboot-tl-wdr4900-v1|\
 +tl-wdr4900-v1)
-+    platformo="$object/fixed-head.o $object/tl-wdr4900-v1.o"
++    platformo="$object/fixed-head.o $object/simpleboot.o"
 +    link_address='0x1000000'
 +    binary=y
 +    ;;
- epapr)
-     platformo="$object/pseries-head.o $object/epapr.o $object/epapr-wrapper.o"
-     link_address='0x20000000'
+ ep88xc|ep405|ep8248e)
+     platformo="$object/fixed-head.o $object/$platform.o"
+     binary=y
 --- a/arch/powerpc/platforms/85xx/Kconfig
 +++ b/arch/powerpc/platforms/85xx/Kconfig
 @@ -170,6 +170,17 @@ config STX_GP3
@@ -85,7 +78,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
  src-plat-$(CONFIG_PPC_82xx) += cuboot-pq2.c fixed-head.S ep8248e.c cuboot-824x.c
  src-plat-$(CONFIG_PPC_83xx) += cuboot-83xx.c fixed-head.S redboot-83xx.c
 -src-plat-$(CONFIG_FSL_SOC_BOOKE) += cuboot-85xx.c cuboot-85xx-cpm2.c
-+src-plat-$(CONFIG_FSL_SOC_BOOKE) += fixed-head.S cuboot-85xx.c cuboot-85xx-cpm2.c
++src-plat-$(CONFIG_FSL_SOC_BOOKE) += simpleboot.c fixed-head.S cuboot-85xx.c cuboot-85xx-cpm2.c
  src-plat-$(CONFIG_EMBEDDED6xx) += cuboot-pq2.c cuboot-mpc7448hpc2.c \
  					cuboot-c2k.c gamecube-head.S \
  					gamecube.c wii-head.S wii.c holly.c \
