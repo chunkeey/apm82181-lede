@@ -141,7 +141,7 @@ GEMINI_NAS_PACKAGES:=kmod-md-mod kmod-md-linear kmod-md-multipath \
 		kmod-fs-nfsd kmod-fs-ntfs kmod-fs-reiserfs kmod-fs-vfat \
 		kmod-nls-utf8 kmod-usb-storage-extras \
 		samba36-server mdadm cfdisk fdisk e2fsprogs badblocks \
-		partx-utils
+		mkf2fs f2fsck partx-utils
 
 # The DIR-685 flash layout is kernel in WRGG format, padded and followed
 # by the appended rootfs followed by some reasonable JFFS padding, the
@@ -173,7 +173,7 @@ define Device/dlink_dns-313
 	DEVICE_TYPE := nas
 	DEVICE_PACKAGES := $(GEMINI_NAS_PACKAGES)
 	BLOCKSIZE := 1k
-	FILESYSTEMS := ext4
+	FILESYSTEMS := ext4 squashfs
 	IMAGES := factory.bin.gz
 	IMAGE/factory.bin.gz := dns313-images | gzip
 endef
