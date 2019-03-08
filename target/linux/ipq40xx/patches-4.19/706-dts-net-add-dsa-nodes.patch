@@ -1,0 +1,108 @@
+From 9deeec35dd3b628b95624e41d4e04acf728991ba Mon Sep 17 00:00:00 2001
+From: Christian Lamparter <chunkeey@gmail.com>
+Date: Sun, 20 Nov 2016 02:20:54 +0100
+Subject: [PATCH] dts: ipq4019: add DSA switch and PSGMII-PHY/portwrap nodes
+
+This patch adds both the "qca,qca8337-mmio" and "qcom,ipq4019-psgmii-phy"
+nodes which are needed for the qca8k.c driver to initialize the switch.
+
+Squashed patch from Jeff Kletsky <git-commits@allycomm.com>:
+|"ipq40xx: Unique, consistent `label` properties for essportN"
+|
+|Early versions of this patch had duplicate `label` properties
+|leading to failure to initialize one of the ports.
+|Signed-off-by: Jeff Kletsky <git-commits@allycomm.com>
+
+Signed-off-by: Christian Lamparter <chunkeey@gmail.com>
+---
+
+--- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
++++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
+@@ -594,6 +594,87 @@
+ 			};
+ 		};
+ 
++		psgmii_phy: psgmii-phy@98000 {
++			compatible = "qcom,ipq4019-psgmii-phy", "syscon";
++			reg = <0x98000 0x800>;
++			resets = <&gcc ESS_PSGMII_ARES>;
++			reset-names = "psgmii_rst";
++
++			status = "disabled";
++		};
++
++		ess: switch@c000000 {
++			compatible = "qca,qca8337-mmio", "syscon";
++			reg = <0xc000000 0x80000>;
++			resets = <&gcc ESS_RESET>, <&gcc ESS_MAC1_CLK_DIS>,
++				 <&gcc ESS_MAC2_CLK_DIS>, <&gcc ESS_MAC3_CLK_DIS>,
++				 <&gcc ESS_MAC4_CLK_DIS>, <&gcc ESS_MAC5_CLK_DIS>;
++			reset-names = "ess_rst", "ess_mac1_clk_dis",
++				      "ess_mac2_clk_dis", "ess_mac3_clk_dis",
++				      "ess_mac4_clk_dis", "ess_mac5_clk_dis";
++			clocks = <&gcc GCC_ESS_CLK>;
++			clock-names = "ess_clk";
++			psgmii-phy = <&psgmii_phy>;
++			syscon = <&portwrapper>;
++			mii = <&mdio>;
++			mac-mode = <0>; /* 0 = PSGMII, 1 = RGMII5 */
++
++			status = "disabled";
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				essport0: port@0 { /* MAC0 */
++					reg = <0>;
++					label = "cpu";
++					ethernet = <&gmac>;
++					phy-mode = "internal";
++
++					fixed-link {
++						speed = <1000>;
++						full-duplex;
++						pause;
++					};
++				};
++
++				essport1: port@1 { /* MAC1 */
++					reg = <1>;
++					label = "lan1";
++					phy-handle = <&ethphy0>;
++				};
++
++				essport2: port@2 { /* MAC2 */
++					reg = <2>;
++					label = "lan2";
++					phy-handle = <&ethphy1>;
++				};
++
++				essport3: port@3 { /* MAC3 */
++					reg = <3>;
++					label = "lan3";
++					phy-handle = <&ethphy2>;
++				};
++
++				essport4: port@4 { /* MAC4 */
++					reg = <4>;
++					label = "lan4";
++					phy-handle = <&ethphy3>;
++				};
++
++				essport5: port@5 { /* MAC5 */
++					reg = <5>;
++					label = "wan";
++					phy-handle = <&ethphy4>;
++				};
++			};
++		};
++
++		portwrapper: portmux@1953000 {
++			compatible = "syscon";
++			reg = <0x1953000 0x1000>;
++		};
++
+ 		usb3_ss_phy: ssphy@9a000 {
+ 			compatible = "qcom,usb-ss-ipq4019-phy";
+ 			#phy-cells = <0>;
