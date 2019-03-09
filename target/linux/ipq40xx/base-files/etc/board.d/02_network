@@ -46,7 +46,6 @@ ipq40xx_setup_interfaces()
 		ucidef_set_interface_lan "eth0 eth1"
 		;;
 	engenius,eap1300|\
-	meraki,mr33|\
 	netgear,ex6100v2|\
 	netgear,ex6150v2|\
 	zyxel,wre6606)
@@ -56,6 +55,9 @@ ipq40xx_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
 			"0u@eth0" "3:lan" "4:lan"
+		;;
+	meraki,mr33)
+		ucidef_set_interface_lan "lan"
 		;;
 	qxwlan,e2600ac-c1 |\
 	qxwlan,e2600ac-c2)
