@@ -26,6 +26,7 @@
 		led-failsafe = &status_red;
 		led-running = &status_green;
 		led-upgrade = &power_orange;
+		ethernet0 = &gmac;
 	};
 
 	/* Do we really need this defined? */
@@ -39,23 +40,11 @@
 			status = "okay";
 		};
 
-		mdio@90000 {
-			status = "okay";
-			pinctrl-0 = <&mdio_pins>;
-			pinctrl-names = "default";
-		};
-
 		/* It is a 56-bit counter that supplies the count to the ARM arch
 		   timers and without upstream driver */
 		counter@4a1000 {
 			compatible = "qcom,qca-gcnt";
 			reg = <0x4a1000 0x4>;
-		};
-
-		ess_tcsr@1953000 {
-			compatible = "qcom,tcsr";
-			reg = <0x1953000 0x1000>;
-			qcom,ess-interface-select = <TCSR_ESS_PSGMII_RGMII5>;
 		};
 
 		tcsr@1949000 {
@@ -86,19 +75,6 @@
 		};
 
 		watchdog@b017000 {
-			status = "okay";
-		};
-
-		ess-switch@c000000 {
-			switch_mac_mode = <0x3>; /* mac mode for RGMII RMII */
-			switch_lan_bmp = <0x0>; /* lan port bitmap */
-			switch_wan_bmp = <0x10>; /* wan port bitmap */
-		};
-
-		edma@c080000 {
-			qcom,single-phy;
-			qcom,num_gmac = <1>;
-			phy-mode = "rgmii-rxid";
 			status = "okay";
 		};
 	};
@@ -138,10 +114,32 @@
 	status = "okay";
 };
 
-&gmac0 {
-	qcom,phy_mdio_addr = <1>;
-	qcom,poll_required = <1>;
-	vlan_tag = <0 0x20>;
+&mdio {
+	status = "okay";
+	pinctrl-0 = <&mdio_pins>;
+	pinctrl-names = "default";
+};
+
+&ess {
+	mac-mode = <0x3>; /* mac mode for RGMII RMII */
+	status = "okay";
+
+	ports {
+		/delete-node/ port@1;
+		/delete-node/ port@2;
+		/delete-node/ port@3;
+		/delete-node/ port@4;
+
+		port@5 {
+			phy-mode = "rgmii-rxid";
+			phy-handle = <&ethphy1>;
+			label = "lan";
+		};
+	};
+};
+
+&gmac {
+	status = "okay";
 };
 
 &blsp1_i2c3 {
