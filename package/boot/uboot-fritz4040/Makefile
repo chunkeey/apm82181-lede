@@ -10,9 +10,9 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_SOURCE_URL:=https://github.com/chunkeey/FritzBox-4040-UBOOT
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=5f383305f4f0be631b51f89e3dc717318057bde9
-PKG_SOURCE_DATE:=2019-03-03
-PKG_MIRROR_HASH:=35f761659027366f5121d04db1ad263321b6a252f6573a98faae4938b861c247
+PKG_SOURCE_VERSION:=2ff189ffa1e72f38bee09c08061978673a77f315
+PKG_SOURCE_DATE:=2019-03-30
+PKG_MIRROR_HASH:=6710bf0b89bdf983745fcb346d6d3b0d5f63429625217d8be9abcb45f858c12e
 
 PKG_RELEASE:=1
 
@@ -40,6 +40,11 @@ define U-Boot/fritz7530
   BUILD_DEVICES:=avm_fritzbox-7530
 endef
 
+define U-Boot/rt_ac58u
+  NAME:=RT-AC58U
+  BUILD_DEVICES:=asus_rt-ac58u
+endef
+
 UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
 UBOOT_MAKE_FLAGS = USE_PRIVATE_LIBGCC=yes
 export DTC
@@ -53,7 +58,9 @@ endef
 
 define Build/Compile
 	$(Build/Compile/U-Boot)
-	(cd $(PKG_BUILD_DIR); ./fritz/fritzcreator.sh $(UBOOT_BOARD);)
+	$(if $(filter rt-ac58u,$(UBOOT_BOARD)),
+		$(CP) $(PKG_BUILD_DIR)/u-boot.bin $(PKG_BUILD_DIR)/$(UBOOT_IMAGE);,
+		(cd $(PKG_BUILD_DIR); ./fritz/fritzcreator.sh $(UBOOT_BOARD);))
 endef
 
 define Build/InstallDev
@@ -66,6 +73,6 @@ define Package/u-boot/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/upload-to-f4040.sh $(1)/
 endef
 
-UBOOT_TARGETS := fritz3000 fritz4040 fritz7530
+UBOOT_TARGETS := fritz3000 fritz4040 fritz7530 rt-ac58u
 
 $(eval $(call BuildPackage/U-Boot))
