@@ -1,13 +1,15 @@
 #!/usr/bin/env perl 
+# SPDX-License-Identifier: GPL-2.0
+#
 # (c) 2001, Dave Jones. (the file handling bit)
 # (c) 2005, Joel Schopp <jschopp@austin.ibm.com> (the ugly bit)
 # (c) 2007,2008, Andy Whitcroft <apw@uk.ibm.com> (new conditions, test suite)
 # (c) 2008-2010 Andy Whitcroft <apw@canonical.com>
 # (c) 2013 Vasilis Tsiligiannis <acinonyx@openwrt.gr> (adapt for OpenWrt tree)
-# Licensed under the terms of the GNU GPL License version 2
 
 use strict;
 use warnings;
+use Cwd 'abs_path';
 
 my $P = $0;
 $P =~ s@.*/@@g;
@@ -1195,6 +1197,29 @@ sub annotate_values {
 	return ($res, $var);
 }
 
+sub which {
+	my ($bin) = @_;
+
+	foreach my $path (split(/:/, $ENV{PATH})) {
+		if (-e "$path/$bin") {
+			return "$path/$bin";
+		}
+	}
+
+	return "";
+}
+
+sub is_SPDX_License_valid {
+	my ($license) = @_;
+
+	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$root/.git"));
+
+	my $root_path = abs_path($root);
+	my $status = `cd "$root_path"; echo "$license" | python scripts/spdxcheck.py -`;
+	return 0 if ($status ne "");
+	return 1;
+}
+
 sub possible {
 	my ($possible, $line) = @_;
 	my $notPermitted = qr{(?:
@@ -1390,6 +1415,8 @@ sub process {
 	my %suppress_whiletrailers;
 	my %suppress_export;
 	my $suppress_statement = 0;
+
+	my $checklicenseline = 1;
 
 	# Pre-scan the patch sanitizing the lines.
 	sanitise_line_reset();
@@ -1721,6 +1748,36 @@ sub process {
 
 			WARN("DEPRECATED_VARIABLE",
 			     "Use of $flag is deprecated, please use \`$replacement->{$flag} instead.\n" . $herecurr) if ($replacement->{$flag});
+		}
+
+# check for using SPDX license tag at beginning of files
+		if ($realline == $checklicenseline) {
+			if ($rawline =~ /^[ \+]\s*\#\!\s*\//) {
+				$checklicenseline = 2;
+			} elsif ($rawline =~ /^\+/) {
+				my $comment = "";
+				if ($realfile =~ /\.(h|s|S)$/) {
+					$comment = '/*';
+				} elsif ($realfile =~ /\.(c|dts|dtsi)$/) {
+					$comment = '//';
+				} elsif (($checklicenseline == 2) || $realfile =~ /\.(sh|pl|py|awk|tc)$/) {
+					$comment = '#';
+				} elsif ($realfile =~ /\.rst$/) {
+					$comment = '..';
+				}
+
+				if ($comment !~ /^$/ &&
+				    $rawline !~ /^\+\Q$comment\E SPDX-License-Identifier: /) {
+					 WARN("SPDX_LICENSE_TAG",
+					      "Missing or malformed SPDX-License-Identifier tag in line $checklicenseline\n" . $herecurr);
+				} elsif ($rawline =~ /(SPDX-License-Identifier: .*)/) {
+					 my $spdx_license = $1;
+					 if (!is_SPDX_License_valid($spdx_license)) {
+						  WARN("SPDX_LICENSE_TAG",
+						       "'$spdx_license' is not supported in LICENSES/...\n" . $herecurr);
+					 }
+				}
+			}
 		}
 
 # check we are in a valid source file if not then ignore this hunk
