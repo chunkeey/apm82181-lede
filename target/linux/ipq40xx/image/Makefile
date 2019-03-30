@@ -1,7 +1,13 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
-DEVICE_VARS += RAS_BOARD RAS_ROOTFS_SIZE RAS_VERSION
+DEVICE_VARS += RAS_BOARD RAS_ROOTFS_SIZE RAS_VERSION UBOOT_PATH
+
+define Build/prepend-factory-uboot
+	mv $@ $@.bak
+	dd if=$(UBOOT_PATH) bs=1M count=1 conv=sync > $@
+	cat $@.bak >> $@
+endef
 
 define Device/Default
 	PROFILES := Default
@@ -117,7 +123,13 @@ define Device/asus_rt-ac58u
 #	to add a version... or we are very careful not to add '\0' into that
 #	string and call it a day.... Yeah, we do the latter!
 	UIMAGE_NAME:=$(shell echo -e '\03\01\01\01RT-AC58U')
-	IMAGES := sysupgrade.bin
+	IMAGES := sysupgrade.bin factory.trx
+#	The factory image uses a legacy uImage to wrap the firmware
+#	That's why we need two uImage headers at the back.
+	UBOOT_PATH := $(STAGING_DIR_IMAGE)/uboot-rt-ac58u.bin
+	IMAGE/factory.trx := sysupgrade-tar | append-metadata | uImage none | \
+	     prepend-factory-uboot | uImage none | uImage none | \
+	     check-size $$$$(IMAGE_SIZE)
 	DEVICE_PACKAGES := kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += asus_rt-ac58u
