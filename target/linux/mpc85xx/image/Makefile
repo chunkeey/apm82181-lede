@@ -39,8 +39,7 @@ define Device/Default
   PROFILES := Default
   DEVICE_DTS := $(1)
   KERNEL_DEPENDS = $$(wildcard $(DTS_DIR)/$$(DEVICE_DTS).dts)
-  KERNEL_ENTRY := 0x1000000
-#  KERNEL_ENTRY := 0x00000000
+  KERNEL_ENTRY := 0x00000000
   KERNEL_LOADADDR := 0x00000000
   KERNEL := kernel-bin
 endef
@@ -53,7 +52,7 @@ define Device/tl-wdr4900-v1
   TPLINK_HWREV := 1
   TPLINK_FLASHLAYOUT := 16Mppc
   KERNEL_SIZE := 2684k
-  KERNEL_NAME := simpleImage.tl-wdr4900-v1
+  KERNEL_NAME := dtbImage.tl-wdr4900-v1
   KERNEL_INITRAMFS :=
   KERNEL := kernel-bin | uImage none
   KERNEL_ENTRY := 0x1000000

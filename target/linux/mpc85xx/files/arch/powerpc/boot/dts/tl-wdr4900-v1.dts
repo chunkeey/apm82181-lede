@@ -15,14 +15,6 @@
 	model = "TP-Link TL-WDR4900 v1";
 	compatible = "tplink,tl-wdr4900-v1";
 
-	cpus {
-		PowerPC,P1010@0 {
-			bus-frequency = <399999996>;
-                        timebase-frequency = <49999999>;
-                        clock-frequency = <799999992>;
-		};
-	};
-
 	chosen {
 		bootargs = "console=ttyS0,115200";
 /*
@@ -39,13 +31,11 @@
 	};
 
 	memory {
-		reg = <0x0 0x0 0x0 0x8000000>;
 		device_type = "memory";
 	};
 
 	soc: soc@ffe00000 {
 		ranges = <0x0 0x0 0xffe00000 0x100000>;
-		bus-frequency = <399999996>;
 
 		spi0: spi@7000 {
 			flash@0 {
@@ -147,20 +137,12 @@
 			status = "disabled";
 		};
 
-		serial@4500 {
-			clock-frequency = <399999996>;
-		};
-
 		can0: can@1c000 {
 			status = "disabled";
 		};
 
 		can1: can@1d000 {
 			status = "disabled";
-		};
-
-		pic@40000 {
-			clock-frequency = <399999996>;
 		};
 
 		ptp_clock@b0e00 {
