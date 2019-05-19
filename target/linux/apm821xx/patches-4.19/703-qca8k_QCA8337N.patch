@@ -432,33 +432,6 @@
  	/* Flush the FDB table */
  	qca8k_fdb_flush(priv);
  
-@@ -624,16 +836,24 @@ static int
- qca8k_phy_read(struct dsa_switch *ds, int phy, int regnum)
- {
- 	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
-+	int realphy = qca8k_to_real_phy(ds, phy);
-+
-+	if (realphy < 0)
-+		return realphy;
- 
--	return mdiobus_read(priv->bus, phy, regnum);
-+	return mdiobus_read(priv->bus, realphy, regnum);
- }
- 
- static int
- qca8k_phy_write(struct dsa_switch *ds, int phy, int regnum, u16 val)
- {
- 	struct qca8k_priv *priv = (struct qca8k_priv *)ds->priv;
-+	int realphy = qca8k_to_real_phy(ds, phy);
-+
-+	if (realphy < 0)
-+		return realphy;
- 
--	return mdiobus_write(priv->bus, phy, regnum, val);
-+	return mdiobus_write(priv->bus, realphy, regnum, val);
- }
- 
- static void
 @@ -910,10 +1130,12 @@ qca8k_sw_probe(struct mdio_device *mdiod
  
  	/* read the switches ID register */
