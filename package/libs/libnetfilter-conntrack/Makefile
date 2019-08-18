@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libnetfilter_conntrack
-PKG_RELEASE:=2
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://git.netfilter.org/libnetfilter_conntrack
-PKG_SOURCE_DATE:=2018-05-01
-PKG_SOURCE_VERSION:=3ccae9f5b2a9564cd63699ba60e54a46bc0d73b6
+PKG_SOURCE_DATE:=2019-08-09
+PKG_SOURCE_VERSION:=4f0dae9239bda9a0844e4103bfa082ca0a5711b1
 PKG_MIRROR_HASH:=c978ef0fa5b7379de2909ca5d9c599ac63b4f8166f5971d58f6e074a922d996f
 
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
