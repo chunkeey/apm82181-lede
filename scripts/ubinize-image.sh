@@ -70,14 +70,10 @@ ubilayout() {
 	"ubifs")
 		autoresize=1
 		;;
-	"squashfs")
-		# squashfs uses 1k block size, ensure we do not
-		# violate that
-		rootsize="$( round_up "$( stat -c%s "$2" )" 1024 )"
-		;;
 	esac
 	ubivol $vol_id rootfs "$2" "$autoresize" "$rootsize"
 
+	[ "$rootfs_type" = "squashfs" ] && echo "vol_alignment=1024"
 	vol_id=$(( $vol_id + 1 ))
 	[ "$rootfs_type" = "ubifs" ] || ubivol $vol_id rootfs_data "" 1
 }

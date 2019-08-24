@@ -177,7 +177,7 @@ nand_upgrade_prepare_ubi() {
 	if [ "$rootfs_type" = "ubifs" ]; then
 		root_size_param="-m"
 	else
-		root_size_param="-s $rootfs_length"
+		root_size_param="-s $rootfs_length -a 1024"
 	fi
 	if ! ubimkvol /dev/$ubidev -N $CI_ROOTPART $root_size_param; then
 		echo "cannot create rootfs volume"
