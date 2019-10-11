@@ -25,6 +25,7 @@ endef
 
 ALLWIFIBOARDS:= \
 	avm_fritzrepeater-1200 \
+	asrock_g10 \
 	linksys_ea8300 \
 	qxwlan_e2600ac
 
@@ -34,7 +35,7 @@ define Package/ipq-wifi-default
   SUBMENU:=ath10k Board-Specific Overrides
   SECTION:=firmware
   CATEGORY:=Firmware
-  DEPENDS:=@TARGET_ipq40xx
+  DEPENDS:=@(TARGET_ipq40xx||TARGET_ipq806x)
   TITLE:=Custom Board
 endef
 
@@ -50,10 +51,12 @@ define ipq-wifi-install-one
     $(call ipq-wifi-install-one-to,$(1),$(2),QCA4019/hw1.0),\
   $(if $(filter $(suffix $(1)),.QCA9888 .qca9888),\
     $(call ipq-wifi-install-one-to,$(1),$(2),QCA9888/hw2.0),\
+  $(if $(filter $(suffix $(1)),.QCA9980 .qca9980),\
+    $(call ipq-wifi-install-one-to,$(1),$(2),QCA9980/hw2.0),\
   $(if $(filter $(suffix $(1)),.QCA9984 .qca9984),\
     $(call ipq-wifi-install-one-to,$(1),$(2),QCA9984/hw1.0),\
     $(error Unrecognized board-file suffix '$(suffix $(1))' for '$(1)')\
-  )))
+  ))))
 
 endef
 # Blank line required at end of above define due to foreach context
@@ -90,6 +93,7 @@ endef
 # Add $(eval $(call generate-ipq-wifi-package,<devicename>,<display name>))
 
 $(eval $(call generate-ipq-wifi-package,avm_fritzrepeater-1200,AVM FRITZRepeater 1200))
+$(eval $(call generate-ipq-wifi-package,asrock_g10,ASRock G10))
 $(eval $(call generate-ipq-wifi-package,linksys_ea8300,Linksys EA8300))
 $(eval $(call generate-ipq-wifi-package,qxwlan_e2600ac,Qxwlan E2600AC))
 
