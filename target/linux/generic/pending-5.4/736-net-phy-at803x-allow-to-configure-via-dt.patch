@@ -1,0 +1,46 @@
+--- a/drivers/net/phy/at803x.c
++++ b/drivers/net/phy/at803x.c
+@@ -355,6 +355,7 @@ static void at803x_link_change_notify(st
+ {
+ 	struct at803x_platform_data *pdata;
+ 	pdata = dev_get_platdata(&phydev->mdio.dev);
++	u8 fixup_rgmii_tx_delay = 0;
+ 
+ 	/*
+ 	 * Conduct a hardware reset for AT8030/2 every time a link loss is
+@@ -378,8 +379,18 @@ static void at803x_link_change_notify(st
+ 		phydev_dbg(phydev, "%s(): phy was reset\n", __func__);
+ 	}
+ 
+-	if (pdata && pdata->fixup_rgmii_tx_delay &&
+-	    phydev->speed != priv->prev_speed) {
++	if (pdata && pdata->fixup_rgmii_tx_delay)
++		fixup_rgmii_tx_delay = 1;
++
++#ifdef CONFIG_OF_MDIO
++	if (phydev->mdio.dev.of_node &&
++	    of_property_read_bool(phydev->mdio.dev.of_node,
++				  "at803x-fixup-rgmii-tx-delay")) {
++		fixup_rgmii_tx_delay = 1;
++	}
++#endif
++
++	if (fixup_rgmii_tx_delay && phydev->speed != priv->prev_speed) {
+ 		switch (phydev->speed) {
+ 		case SPEED_10:
+ 		case SPEED_100:
+@@ -503,6 +514,14 @@ static int at803x_read_status(struct phy
+ 				AT803X_DEBUG_TX_CLK_DLY_EN, 0);
+ 	}
+ 
++#ifdef CONFIG_OF_MDIO
++	if (phydev->mdio.dev.of_node &&
++		of_property_read_bool(phydev->mdio.dev.of_node,
++				      "at803x-disable-smarteee")) {
++		at803x_disable_smarteee(phydev);
++	}
++#endif
++
+ 	return 0;
+ }
+ 
