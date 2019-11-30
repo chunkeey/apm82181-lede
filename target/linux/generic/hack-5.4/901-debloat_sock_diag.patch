@@ -42,10 +42,11 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  obj-$(CONFIG_PROC_FS) += net-procfs.o
 --- a/net/core/sock.c
 +++ b/net/core/sock.c
-@@ -539,6 +539,18 @@ discard_and_relse:
+@@ -539,6 +539,19 @@ discard_and_relse:
  }
  EXPORT_SYMBOL(__sk_receive_skb);
- 
+
++static atomic64_t cookie_gen;
 +u64 sock_gen_cookie(struct sock *sk)
 +{
 +	while (1) {
@@ -53,7 +54,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +
 +		if (res)
 +			return res;
-+		res = atomic64_inc_return(&sock_net(sk)->cookie_gen);
++		res = atomic64_inc_return(&cookie_gen);
 +		atomic64_cmpxchg(&sk->sk_cookie, 0, res);
 +	}
 +}
@@ -61,7 +62,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  struct dst_entry *__sk_dst_check(struct sock *sk, u32 cookie)
  {
  	struct dst_entry *dst = __sk_dst_get(sk);
-@@ -1746,9 +1758,11 @@ static void __sk_free(struct sock *sk)
+@@ -1746,9 +1759,11 @@ static void __sk_free(struct sock *sk)
  	if (likely(sk->sk_net_refcnt))
  		sock_inuse_add(sock_net(sk), -1);
  
