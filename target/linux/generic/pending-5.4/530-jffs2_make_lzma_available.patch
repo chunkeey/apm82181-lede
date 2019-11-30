@@ -257,7 +257,7 @@ Signed-off-by: Alexandros C. Couloumbis <alex@ozo.com>
 -	       " (SUMMARY) "
 +	       " (SUMMARY)"
  #endif
--	       " Â© 2001-2006 Red Hat, Inc.\n");
+-	       " © 2001-2006 Red Hat, Inc.\n");
 +#ifdef CONFIG_JFFS2_ZLIB
 +	       " (ZLIB)"
 +#endif
