@@ -2487,7 +2487,7 @@ ar8xxx_phy_read_status(struct phy_device *phydev)
 	struct switch_port_link link;
 
 	/* check for switch port link changes */
-	if (phydev->state == PHY_CHANGELINK)
+	if (phydev->state == PHY_NOLINK || phydev->state == PHY_RUNNING)
 		ar8xxx_check_link_states(priv);
 
 	if (phydev->mdio.addr != 0)
@@ -2628,6 +2628,7 @@ found:
 	priv->use_count++;
 
 	if (phydev->mdio.addr == 0) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0)
 		if (ar8xxx_has_gige(priv)) {
 			phydev->supported = SUPPORTED_1000baseT_Full;
 			phydev->advertising = ADVERTISED_1000baseT_Full;
@@ -2635,6 +2636,15 @@ found:
 			phydev->supported = SUPPORTED_100baseT_Full;
 			phydev->advertising = ADVERTISED_100baseT_Full;
 		}
+#else
+		if (ar8xxx_has_gige(priv)) {
+			linkmode_set_bit(ETHTOOL_LINK_MODE_1000baseT_Full_BIT, phydev->supported);
+			linkmode_set_bit(ETHTOOL_LINK_MODE_1000baseT_Full_BIT, phydev->advertising);
+		} else {
+			linkmode_set_bit(ETHTOOL_LINK_MODE_100baseT_Full_BIT, phydev->supported);
+			linkmode_set_bit(ETHTOOL_LINK_MODE_100baseT_Full_BIT, phydev->advertising);
+		}
+#endif
 
 		if (priv->chip->config_at_probe) {
 			priv->phy = phydev;
@@ -2645,8 +2655,13 @@ found:
 		}
 	} else {
 		if (ar8xxx_has_gige(priv)) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0)
 			phydev->supported |= SUPPORTED_1000baseT_Full;
 			phydev->advertising |= ADVERTISED_1000baseT_Full;
+#else
+			linkmode_set_bit(ETHTOOL_LINK_MODE_1000baseT_Full_BIT, phydev->supported);
+			linkmode_set_bit(ETHTOOL_LINK_MODE_1000baseT_Full_BIT, phydev->advertising);
+#endif
 		}
 		if (priv->chip->phy_rgmii_set)
 			priv->chip->phy_rgmii_set(priv, phydev);
