@@ -98,7 +98,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  obj-$(CONFIG_NETFILTER_XT_TARGET_LED) += xt_LED.o
 --- /dev/null
 +++ b/net/netfilter/xt_FLOWOFFLOAD.c
-@@ -0,0 +1,422 @@
+@@ -0,0 +1,426 @@
 +/*
 + * Copyright (C) 2018 Felix Fietkau <nbd@nbd.name>
 + *
@@ -142,6 +142,10 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +
 +	return NF_ACCEPT;
 +}
++
++int nf_flow_table_iterate(struct nf_flowtable *flow_table,
++			   void (*iter)(struct flow_offload *flow, void *data),
++			   void *data);
 +
 +static int
 +xt_flowoffload_create_hook(struct net_device *dev)
