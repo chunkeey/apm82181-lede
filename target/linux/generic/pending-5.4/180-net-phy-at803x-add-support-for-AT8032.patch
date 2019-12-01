@@ -28,7 +28,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	 * signalled. This is necessary to circumvent a hardware bug that
  	 * occurs when the cable is unplugged while TX packets are pending
  	 * in the FIFO. In such cases, the FIFO enters an error mode it
-@@ -471,6 +473,24 @@ static struct phy_driver at803x_driver[]
+@@ -471,6 +473,23 @@ static struct phy_driver at803x_driver[]
  	.aneg_done		= at803x_aneg_done,
  	.ack_interrupt		= &at803x_ack_interrupt,
  	.config_intr		= &at803x_config_intr,
@@ -45,7 +45,6 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +	.suspend		= at803x_suspend,
 +	.resume			= at803x_resume,
 +	.features		= PHY_BASIC_FEATURES,
-+	.flags			= PHY_HAS_INTERRUPT,
 +	.config_aneg		= genphy_config_aneg,
 +	.read_status		= genphy_read_status,
 +	.ack_interrupt		= at803x_ack_interrupt,
@@ -53,7 +52,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  } };
  
  module_phy_driver(at803x_driver);
-@@ -478,6 +498,7 @@ module_phy_driver(at803x_driver);
+@@ -478,6 +497,7 @@ module_phy_driver(at803x_driver);
  static struct mdio_device_id __maybe_unused atheros_tbl[] = {
  	{ ATH8030_PHY_ID, AT803X_PHY_ID_MASK },
  	{ ATH8031_PHY_ID, AT803X_PHY_ID_MASK },

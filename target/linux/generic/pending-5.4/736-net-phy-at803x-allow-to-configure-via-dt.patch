@@ -1,9 +1,10 @@
 --- a/drivers/net/phy/at803x.c
 +++ b/drivers/net/phy/at803x.c
-@@ -503,6 +514,14 @@ static int at803x_read_status(struct phy
- 				AT803X_DEBUG_TX_CLK_DLY_EN, 0);
+@@ -319,6 +319,14 @@ static int at803x_config_init(struct phy_device *phydev)
+ 		if (pdata->disable_smarteee)
+ 			at803x_disable_smarteee(phydev);
  	}
- 
++
 +#ifdef CONFIG_OF_MDIO
 +	if (phydev->mdio.dev.of_node &&
 +		of_property_read_bool(phydev->mdio.dev.of_node,
@@ -11,7 +12,6 @@
 +		at803x_disable_smarteee(phydev);
 +	}
 +#endif
-+
- 	return 0;
- }
  
+ 	/* The RX and TX delay default is:
+ 	 *   after HW reset: RX delay enabled and TX delay disabled
